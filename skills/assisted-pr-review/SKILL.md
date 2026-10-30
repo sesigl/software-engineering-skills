@@ -35,6 +35,8 @@ Present a compact overview in plain language:
 - **What**: the core idea of the solution, in 2–3 sentences, without code snippets.
 - **Route**: the numbered **stops** of the tour. Group line ranges by concern rather than by file. Separate unrelated changes in the same PR into distinct stop groups. Order foundations (schemas, types, ports, contracts) before the code that depends on them. Mark stops where the scout or your inspection found a likely risk with `[!]`.
 
+Keep each stop to one line: `file:lines` and a short label, plus a risk label of at most 8 words for `[!]` stops. Keep code snippets, findings, and assessments out of the map; they belong to the stop itself in Step 3. A long map turns the tour into a one-shot review dump.
+
 Ask whether the reviewer wants to start with Stop 1 or adjust the route (reorder, merge, or skip stops). End your turn and wait for their reply.
 
 Completion criterion: every changed production concern belongs to a stop on the route, every scout finding is mapped to a stop, and the reviewer has confirmed or adjusted the route.
@@ -61,12 +63,14 @@ Completion criterion: every stop on the route has been presented or explicitly s
 
 When the final stop is complete, present:
 
-- All captured **review notes**, grouped by file.
+- All captured **review notes**, grouped by file under one `file` heading each, including notes captured in the current turn.
 - Any remaining **scout** findings that were not already turned into review notes.
 
 Review the list together: a later stop may have resolved an earlier note, or a note may need sharper phrasing. Ask which notes to keep, merge, reword, or drop.
 
-Then ask whether the reviewer wants to post the final notes as draft PR comments on GitHub. When they say yes, read [`references/pending-review.md`](references/pending-review.md) and create a **pending** review so the reviewer can inspect and submit it themselves.
+Then ask whether the reviewer wants to post the final notes as draft PR comments on GitHub. A request to "put it on GitHub" earlier in the tour does not replace this confirmation, because the reviewer has not yet seen the final list. In the same message, state that the review will be created in **PENDING** state and not submitted as APPROVE, REQUEST_CHANGES, or COMMENT, so the reviewer stays in control of what the author sees. End your turn and wait.
+
+When the reviewer confirms the final list, read [`references/pending-review.md`](references/pending-review.md) and create the **pending** review so the reviewer can inspect and submit it themselves.
 
 Completion criterion: every scout finding has been surfaced, every review note has been confirmed or dropped by the reviewer, and any requested GitHub review is saved in pending state.
 

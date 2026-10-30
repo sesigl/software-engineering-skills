@@ -27,7 +27,7 @@ Skills in this repository follow Generation 5 agentic skill design and Claude Op
    author: <Your Name>
    ---
    ```
-3. Add at least three evaluation cases in `skills/<skill-name>/evals/evals.json`.
+3. Add at least three evaluation cases in `skills/<skill-name>/evals/evals.json`. Add the same cases as `claude plugin eval` cases in `evals/<skill-name>/<case-name>/`, run them, and record the scores in `evals/RESULTS.md`. See `evals/README.md`.
 4. Register `./skills/<skill-name>` in:
    - `.claude-plugin/marketplace.json`
    - `.claude-plugin/plugin.json`

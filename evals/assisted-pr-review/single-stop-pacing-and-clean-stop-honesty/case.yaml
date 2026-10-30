@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: single-stop-pacing-and-clean-stop-honesty
+tags: [assisted-pr-review]
+execution:
+  runs: 3
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Skill, Agent, "Bash(git:*)"]
+  prompt: |
+    We are in an assisted-pr-review tour of PR #142 (local branch `pr-142` against base `main`). You already presented this route and I confirmed it:
+    1. IdempotencyStore.ts (new Redis claim)
+    2. WebhookService.ts (claim before publish)
+    3. WebhookController.ts (200 for duplicates)
+    
+    Route looks good, let's start with Stop 1 (src/IdempotencyStore.ts).
+context:
+  scaffold_script: scaffold.sh

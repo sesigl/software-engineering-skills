@@ -132,7 +132,11 @@ software-engineering-skills/
 │       ├── references/
 │       │   └── pending-review.md         # Disclosed reference for pending GitHub reviews
 │       └── evals/
-│           └── evals.json                # Behavioral evaluation suite
+│           └── evals.json                # Portable eval scenarios (skill-creator format)
+├── evals/
+│   ├── README.md                         # How to run and write plugin evals
+│   ├── RESULTS.md                        # Latest recorded eval scores
+│   └── assisted-pr-review/<case>/        # case.yaml, scaffold.sh, graders/ for `claude plugin eval`
 ├── CLAUDE.md                             # Concise repository instructions for agents
 ├── CONTRIBUTING.md                       # Skill authoring and review guidelines
 ├── LICENSE                               # MIT License

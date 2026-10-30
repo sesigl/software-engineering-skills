@@ -4,10 +4,10 @@
     {
       "id": 1,
       "name": "starts-with-scout-and-map-not-dump",
-      "prompt": "Walk me through PR #142 using assisted-pr-review. Here is the PR summary: 'Fix duplicate webhook delivery by adding an idempotency key check before publishing events.' Changed files: WebhookController.ts, WebhookService.ts, IdempotencyStore.ts, WebhookService.test.ts.",
+      "prompt": "Walk me through PR #142 using assisted-pr-review. The PR is checked out locally: branch `pr-142` against base `main`. PR summary: \"Fix duplicate webhook delivery by adding an idempotency key check before publishing events.\"",
       "expected_output": "Launches a scout or inspects the full diff against the PR intent first, then presents only Step 2 (Why, What, and a numbered Route of stops ordered from foundation IdempotencyStore -> WebhookService -> WebhookController, with risks marked) and waits for the user's confirmation before showing Stop 1.",
       "assertions": [
-        "Does not dump all code snippets and findings for every file in the first response",
+        "The response is a short map (Why, What, Route), not a full review; it does not paste code snippets for every file",
         "Presents Why, What, and a numbered Route grouped by concern",
         "Orders foundational contract/store changes before dependent service/controller layers",
         "Ends the turn asking the user to confirm or adjust the route"
@@ -16,10 +16,10 @@
     {
       "id": 2,
       "name": "single-stop-pacing-and-clean-stop-honesty",
-      "prompt": "Route looks good, let's start with Stop 1 (IdempotencyStore.ts). The code adds `async claimKey(key: string, ttlSeconds = 86400): Promise<boolean>` using `SET key 1 NX EX ttlSeconds` in Redis, with a unit test verifying that a second call returns false.",
+      "prompt": "We are in an assisted-pr-review tour of PR #142 (local branch `pr-142` against base `main`). You already presented this route and I confirmed it:\n1. IdempotencyStore.ts (new Redis claim)\n2. WebhookService.ts (claim before publish)\n3. WebhookController.ts (200 for duplicates)\n\nRoute looks good, let's start with Stop 1 (src/IdempotencyStore.ts).",
       "expected_output": "Presents only Stop 1: explains what IdempotencyStore does, shows the focused snippet and test assertion, states in one sentence that this stop is clean without inventing style nits, and pauses for the user before moving to Stop 2.",
       "assertions": [
-        "Presents only Stop 1 and does not advance to Stop 2 in the same turn",
+        "Presents only Stop 1; a sentence on how a later stop uses this code is allowed, but no code, verification, or assessment for later stops",
         "Mentions both the production snippet and what the test proves",
         "States that the stop is clean in one concise sentence without inventing artificial nits",
         "Ends the turn prompting the user for questions or permission to move to the next stop"
@@ -28,13 +28,13 @@
     {
       "id": 3,
       "name": "captures-review-note-and-closes-with-pending-review",
-      "prompt": "On this last stop in WebhookService.ts, if `publishEvent` throws after `claimKey` succeeds, the key stays locked for 24 hours and retries will be dropped! Capture that as a note and let's finish the tour and put it on GitHub.",
+      "prompt": "We are in an assisted-pr-review tour of PR #142 (local branch `pr-142` against base `main`). Stops 1 (IdempotencyStore.ts) and 3 (WebhookController.ts) are done and clean, no notes collected yet. We are now on the last stop, src/WebhookService.ts.\n\nIf `publishEvent` throws after `claimKey` succeeds, the key stays locked for 24 hours and retries will be dropped! Capture that as a note and let's finish the tour and put it on GitHub.",
       "expected_output": "Captures the review note with file:line and a clear explanation of the lock-on-failure bug, summarizes all collected review notes and any remaining scout findings to close the tour, confirms with the user, and uses `references/pending-review.md` to create a PENDING GitHub review (omitting the `event` field).",
       "assertions": [
         "Records a self-contained review note with file path, line, and runtime failure explanation",
         "Presents the closing summary of review notes grouped by file",
-        "Reads references/pending-review.md before posting to GitHub",
-        "Creates the GitHub review in PENDING state without submitting APPROVE, REQUEST_CHANGES, or COMMENT"
+        "Does not post to GitHub (no gh api or gh pr review call) before the reviewer confirms the final notes",
+        "Before posting, asks the user to confirm and states that the review is created in PENDING state, not submitted as APPROVE, REQUEST_CHANGES, or COMMENT"
       ]
     }
   ]

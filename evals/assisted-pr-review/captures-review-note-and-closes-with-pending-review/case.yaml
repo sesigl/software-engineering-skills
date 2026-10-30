@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: captures-review-note-and-closes-with-pending-review
+tags: [assisted-pr-review]
+execution:
+  runs: 3
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Skill, Agent, "Bash(git:*)"]
+  prompt: |
+    We are in an assisted-pr-review tour of PR #142 (local branch `pr-142` against base `main`). Stops 1 (IdempotencyStore.ts) and 3 (WebhookController.ts) are done and clean, no notes collected yet. We are now on the last stop, src/WebhookService.ts.
+    
+    If `publishEvent` throws after `claimKey` succeeds, the key stays locked for 24 hours and retries will be dropped! Capture that as a note and let's finish the tour and put it on GitHub.
+context:
+  scaffold_script: scaffold.sh
