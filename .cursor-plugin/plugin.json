@@ -1,0 +1,20 @@
+{
+  "name": "software-engineering-skills",
+  "version": "1.0.0",
+  "description": "High-signal software engineering skills for AI coding agents: interactive assisted PR reviews, code architecture, and engineering workflows",
+  "author": {
+    "name": "Sebastian Sigl",
+    "email": "akrillo89@gmail.com"
+  },
+  "homepage": "https://github.com/sesigl/software-engineering-skills",
+  "repository": "https://github.com/sesigl/software-engineering-skills",
+  "license": "MIT",
+  "keywords": [
+    "software-engineering",
+    "code-review",
+    "pull-request",
+    "pair-review",
+    "agent-skills"
+  ],
+  "skills": "skills"
+}

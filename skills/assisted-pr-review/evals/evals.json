@@ -1,0 +1,41 @@
+{
+  "skill_name": "assisted-pr-review",
+  "evals": [
+    {
+      "id": 1,
+      "name": "starts-with-scout-and-map-not-dump",
+      "prompt": "Walk me through PR #142 using assisted-pr-review. Here is the PR summary: 'Fix duplicate webhook delivery by adding an idempotency key check before publishing events.' Changed files: WebhookController.ts, WebhookService.ts, IdempotencyStore.ts, WebhookService.test.ts.",
+      "expected_output": "Launches a scout or inspects the full diff against the PR intent first, then presents only Step 2 (Why, What, and a numbered Route of stops ordered from foundation IdempotencyStore -> WebhookService -> WebhookController, with risks marked) and waits for the user's confirmation before showing Stop 1.",
+      "assertions": [
+        "Does not dump all code snippets and findings for every file in the first response",
+        "Presents Why, What, and a numbered Route grouped by concern",
+        "Orders foundational contract/store changes before dependent service/controller layers",
+        "Ends the turn asking the user to confirm or adjust the route"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "single-stop-pacing-and-clean-stop-honesty",
+      "prompt": "Route looks good, let's start with Stop 1 (IdempotencyStore.ts). The code adds `async claimKey(key: string, ttlSeconds = 86400): Promise<boolean>` using `SET key 1 NX EX ttlSeconds` in Redis, with a unit test verifying that a second call returns false.",
+      "expected_output": "Presents only Stop 1: explains what IdempotencyStore does, shows the focused snippet and test assertion, states in one sentence that this stop is clean without inventing style nits, and pauses for the user before moving to Stop 2.",
+      "assertions": [
+        "Presents only Stop 1 and does not advance to Stop 2 in the same turn",
+        "Mentions both the production snippet and what the test proves",
+        "States that the stop is clean in one concise sentence without inventing artificial nits",
+        "Ends the turn prompting the user for questions or permission to move to the next stop"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "captures-review-note-and-closes-with-pending-review",
+      "prompt": "On this last stop in WebhookService.ts, if `publishEvent` throws after `claimKey` succeeds, the key stays locked for 24 hours and retries will be dropped! Capture that as a note and let's finish the tour and put it on GitHub.",
+      "expected_output": "Captures the review note with file:line and a clear explanation of the lock-on-failure bug, summarizes all collected review notes and any remaining scout findings to close the tour, confirms with the user, and uses `references/pending-review.md` to create a PENDING GitHub review (omitting the `event` field).",
+      "assertions": [
+        "Records a self-contained review note with file path, line, and runtime failure explanation",
+        "Presents the closing summary of review notes grouped by file",
+        "Reads references/pending-review.md before posting to GitHub",
+        "Creates the GitHub review in PENDING state without submitting APPROVE, REQUEST_CHANGES, or COMMENT"
+      ]
+    }
+  ]
+}

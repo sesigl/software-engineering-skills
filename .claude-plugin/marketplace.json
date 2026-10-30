@@ -1,0 +1,38 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "software-engineering-skills",
+  "description": "Curated agentic software engineering skills for Claude Code, OpenCode, Cursor, Codex, and other AI coding harnesses",
+  "version": "1.0.0",
+  "owner": {
+    "name": "Sebastian Sigl",
+    "email": "akrillo89@gmail.com",
+    "url": "https://github.com/sesigl"
+  },
+  "plugins": [
+    {
+      "name": "software-engineering-skills",
+      "description": "High-signal software engineering skills for AI coding agents: interactive assisted PR reviews, code architecture, and engineering workflows",
+      "version": "1.0.0",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/assisted-pr-review"
+      ],
+      "author": {
+        "name": "Sebastian Sigl",
+        "email": "akrillo89@gmail.com"
+      },
+      "repository": "https://github.com/sesigl/software-engineering-skills",
+      "license": "MIT",
+      "category": "development",
+      "keywords": [
+        "software-engineering",
+        "code-review",
+        "pull-request",
+        "pair-review",
+        "agent-skills",
+        "claude-code"
+      ]
+    }
+  ]
+}
