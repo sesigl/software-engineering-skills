@@ -18,7 +18,13 @@ Curated, high-signal skills for AI coding agents. Compatible out of the box with
 
 ### Option 1: Claude Code Plugin Marketplace (Recommended for Claude Code)
 
-Run these commands inside Claude Code:
+Run this command inside Claude Code (2.1.275 or later):
+
+```bash
+/plugin install software-engineering-skills --marketplace sesigl/software-engineering-skills
+```
+
+On older versions, run these commands instead:
 
 ```bash
 # 1. Add this repository as a plugin marketplace
