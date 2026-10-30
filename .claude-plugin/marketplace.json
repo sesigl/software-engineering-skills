@@ -14,10 +14,6 @@
       "description": "High-signal software engineering skills for AI coding agents: interactive assisted PR reviews, code architecture, and engineering workflows",
       "version": "1.0.0",
       "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/assisted-pr-review"
-      ],
       "author": {
         "name": "Sebastian Sigl",
         "email": "akrillo89@gmail.com"
