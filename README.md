@@ -9,6 +9,7 @@ Curated, high-signal skills for AI coding agents. Compatible out of the box with
 <!-- SKILLS:START -->
 | Skill | Description | Invocation |
 | :--- | :--- | :--- |
+| [`agent-first-repo-setup`](skills/agent-first-repo-setup/) | Interviews you and scaffolds a Git repository for agent-first development with a lean `CLAUDE.md`, path-scoped `.claude/rules`, on-demand `.claude/skills`, a domain `GLOSSARY.md`, Gherkin feature specs, ADRs, a parameterized `Makefile`, fast system tests, and deterministic quality guardrails (Dryer, Crapper, Mutator). | Model & User (`/agent-first-repo-setup`) |
 | [`assisted-pr-review`](skills/assisted-pr-review/) | Guides you through a pull request as an interactive, step-by-step tour in the terminal, moving from system intent and architecture down to individual lines one stop at a time. | Model & User (`/assisted-pr-review`) |
 <!-- SKILLS:END -->
 

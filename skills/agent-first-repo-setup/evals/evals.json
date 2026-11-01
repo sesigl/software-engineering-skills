@@ -1,0 +1,43 @@
+{
+  "skill_name": "agent-first-repo-setup",
+  "evals": [
+    {
+      "id": 1,
+      "name": "starts-with-focused-interview-and-recommended-defaults",
+      "prompt": "Help me set up a new repository in this empty folder for a subscription billing API in TypeScript using an agent-first development setup.",
+      "expected_output": "Inspects the directory first, then interviews the user on the open decisions (domain terms for GLOSSARY.md, single-context vs monorepo topology, fast in-memory DB/fakes for system tests such as SQLite/PGlite, quality signal thresholds for make test such as Dryer < 0.8% and Crapper CRAP < 10 and make test-all Mutator, and documentation traceability) with recommended defaults for TypeScript, waiting for confirmation before writing files.",
+      "assertions": [
+        "Does not scaffold files before interviewing the user and confirming the blueprint",
+        "Asks about core domain terms for GLOSSARY.md",
+        "Proposes concrete fast system-test harness options (such as in-memory SQLite or PGlite and local fakes) suitable for TypeScript",
+        "Names quality-signal defaults (duplication < 0.8%, CRAP < 10, mutation testing for make test-all), as a question now or as a preview of the next question round",
+        "Each question includes a recommended default answer",
+        "Ends the turn with open questions and does not claim that files were created"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "scaffolds-single-context-repo-with-path-scoped-rules-and-working-guardrails",
+      "prompt": "We are setting up a new Python FastAPI repository `order-service` in the current empty directory. Here are the confirmed answers from our interview:\n- Single-context repo.\n- Domain terms: Order (a customer request to purchase line items; Avoid: basket, cart, purchase) and LineItem (a product SKU and quantity within an Order; Avoid: entry, row).\n- Stack: Python 3.12, pytest, SQLite in-memory (`:memory:`) with FastAPI TestClient/ASGITransport and an in-memory FakePaymentGateway.\n- Quality gates: Dryer duplication < 0.8% and Crapper CRAP < 10 on `make test`, Mutator mutation testing >= 80% on `make test-all`.\n- Enforce `@SPEC-NNN` traceability across both `tests/system/` and `docs/`.\n\nThe blueprint is approved. Please scaffold the repository now and verify `make test` passes.",
+      "expected_output": "Initializes Git and scaffolds CLAUDE.md (with First Make It Work, Then Make It Right, and Practice principles), GLOSSARY.md (with Order, LineItem, and Avoid lists), parameterized Makefile, features/ with @SPEC-001, docs/README.md, docs/adr/0001-agent-first-architecture.md, path-scoped .claude/rules/*.md with YAML paths: frontmatter, .claude/skills/ (system-testing, domain-modeling, feature-development), executable scripts/ (check-features, check-traceability, check-quality), and a passing @SPEC-001 system test verified by running make test.",
+      "assertions": [
+        "Creates CLAUDE.md, GLOSSARY.md (with _Avoid_ synonyms), docs/README.md, and docs/adr/0001-agent-first-architecture.md",
+        "Every file in .claude/rules/*.md starts with YAML frontmatter containing a paths: list for on-demand loading",
+        "Creates .claude/skills/system-testing/SKILL.md tailored to FastAPI, in-memory SQLite, FakePaymentGateway, Dryer, Crapper, and Mutator",
+        "Creates executable scripts in scripts/ (check-features, check-traceability, check-quality) and a parameterized Makefile where `make test` exits 0"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "scaffolds-monorepo-with-per-module-features-and-glossary-map",
+      "prompt": "Scaffold an agent-first monorepo in the current directory with two modules: `ordering` and `inventory` (TypeScript / Vitest). Blueprint is confirmed: root `GLOSSARY-MAP.md` plus per-module `GLOSSARY.md` and `features/` in each module, parameterized `Makefile` supporting `MODULE=`, path-scoped `.claude/rules/`, `.claude/skills/`, and deterministic guardrail scripts.",
+      "expected_output": "Scaffolds a monorepo with root GLOSSARY-MAP.md, modules/ordering/{GLOSSARY.md,features/}, modules/inventory/{GLOSSARY.md,features/}, root CLAUDE.md, parameterized Makefile with MODULE= support, path-scoped .claude/rules/, .claude/skills/, and scripts/check-features + scripts/check-traceability validating all modules.",
+      "assertions": [
+        "Creates root GLOSSARY-MAP.md and per-module GLOSSARY.md files under modules/ordering and modules/inventory",
+        "Creates a features/ directory with valid Gherkin and unique @SPEC tags in both modules/ordering and modules/inventory",
+        "Makefile supports the MODULE= parameter and runs deterministic checks across modules",
+        "All .claude/rules/*.md files use YAML paths: frontmatter"
+      ]
+    }
+  ]
+}

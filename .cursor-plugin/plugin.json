@@ -1,6 +1,6 @@
 {
   "name": "software-engineering-skills",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "High-signal software engineering skills for AI coding agents: interactive assisted PR reviews, code architecture, and engineering workflows",
   "author": {
     "name": "Sebastian Sigl",
