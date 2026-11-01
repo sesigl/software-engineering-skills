@@ -1,0 +1,30 @@
+schema_version: "1.1"
+name: adapts-agent-context-to-claude-code-codex-and-cursor
+tags: [agent-first-repo-setup]
+execution:
+  runs: 3
+  max_turns: 90
+  timeout_seconds: 1800
+  allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
+  prompt: |
+    We are setting up a new repository `invoice-service` in the current empty directory. Here are the confirmed answers from our interview:
+    - Target agent harnesses: Claude Code, Codex, and Cursor. The team does not use GitHub Copilot or Gemini CLI.
+    - Single-context repo.
+    - Domain terms: Invoice (a request to a customer to pay for delivered items; Avoid: bill, statement) and Payment (money that a customer transfers to settle an Invoice; Avoid: transaction, charge).
+    - Stack: Node.js JavaScript (ES modules), the built-in `node:test` runner, an in-memory InvoiceRepository, and an in-memory FakePaymentProvider.
+    - Quality gates: Dryer duplication < 0.8% and Crapper CRAP < 10 on `make test`, Mutator mutation testing >= 80% on `make test-all`.
+    - Enforce `@SPEC-NNN` traceability in `tests/system/` only.
+
+    Harness research findings that we verified in the vendor documentation and confirmed in the blueprint:
+    - Claude Code loads `CLAUDE.md` at session start and does not read `AGENTS.md`. `CLAUDE.md` can import another file with an `@path` line. Glob-scoped rules go in `.claude/rules/*.md` with `paths:` frontmatter. Claude Code reads project skills only from `.claude/skills/`.
+    - Codex loads `AGENTS.md` files from the repository root to the current directory. A nested `AGENTS.md` applies to its directory tree, and the deeper file wins on conflict. Codex has no glob-scoped instruction rules. Codex reads project skills from `.agents/skills/`.
+    - Cursor reads `AGENTS.md` and nested `AGENTS.md` files. It also supports glob-scoped rules in `.cursor/rules/*.mdc` with `globs:` and `alwaysApply: false`. Cursor reads project skills from `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`.
+
+    The blueprint is approved. Please scaffold the repository now and verify `make check` passes.
+
+    Eval sandbox notes (they apply only to this environment):
+    - There is no network access and no npm registry. Write the guardrail scripts with Node.js built-ins only (`node` is on PATH). If a quality tool is not installed, `scripts/check-quality` can print a warning and skip that tool.
+    - `/usr/bin/make` and `/usr/bin/git` do not work here. Use `/Library/Developer/CommandLineTools/usr/bin/make` and `/Library/Developer/CommandLineTools/usr/bin/git`.
+    - Writes to `.claude/` are blocked. Write every file that belongs in `.claude/` to `claude-context/` with the same layout (for example `.claude/rules/x.md` goes to `claude-context/rules/x.md`, and a `.claude/skills` symlink becomes `claude-context/skills`).
+context:
+  scaffold_script: scaffold.sh

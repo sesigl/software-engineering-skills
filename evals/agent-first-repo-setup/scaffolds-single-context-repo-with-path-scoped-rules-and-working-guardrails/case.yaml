@@ -8,6 +8,7 @@ execution:
   allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
   prompt: |
     We are setting up a new Python FastAPI repository `order-service` in the current directory. Here are the confirmed answers from our interview:
+    - Target agent harness: Claude Code only.
     - Single-context repo.
     - Domain terms: Order (a customer request to purchase line items; Avoid: basket, cart, purchase) and LineItem (a product SKU and quantity within an Order; Avoid: entry, row).
     - Stack: Python 3.12, pytest, SQLite in-memory (`:memory:`) with FastAPI TestClient/ASGITransport and an in-memory FakePaymentGateway.

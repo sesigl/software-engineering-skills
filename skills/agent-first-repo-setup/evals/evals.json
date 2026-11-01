@@ -5,9 +5,10 @@
       "id": 1,
       "name": "starts-with-focused-interview-and-recommended-defaults",
       "prompt": "Help me set up a new repository in this empty folder for a subscription billing API in TypeScript using an agent-first development setup.",
-      "expected_output": "Inspects the directory first, then interviews the user on the open decisions (domain terms for GLOSSARY.md, single-context vs monorepo topology, fast in-memory DB/fakes for system tests such as SQLite/PGlite, quality signal thresholds for make test such as Dryer < 0.8% and Crapper CRAP < 10 and make test-all Mutator, and documentation traceability) with recommended defaults for TypeScript, waiting for confirmation before writing files.",
+      "expected_output": "Inspects the directory first, then interviews the user on the open decisions (target agent harnesses with Claude Code as the default, domain terms for GLOSSARY.md, single-context vs monorepo topology, fast in-memory DB/fakes for system tests such as SQLite/PGlite, quality signal thresholds for make test such as Dryer < 0.8% and Crapper CRAP < 10 and make test-all Mutator, and documentation traceability) with recommended defaults for TypeScript, waiting for confirmation before writing files.",
       "assertions": [
         "Does not scaffold files before interviewing the user and confirming the blueprint",
+        "Asks which agent harnesses to support, recommends Claude Code as the default, and names at least one alternative harness",
         "Asks about core domain terms for GLOSSARY.md",
         "Proposes concrete fast system-test harness options (such as in-memory SQLite or PGlite and local fakes) suitable for TypeScript",
         "Names quality-signal defaults (duplication < 0.8%, CRAP < 10, mutation testing for make test-all), as a question now or as a preview of the next question round",
@@ -18,25 +19,40 @@
     {
       "id": 2,
       "name": "scaffolds-single-context-repo-with-path-scoped-rules-and-working-guardrails",
-      "prompt": "We are setting up a new Python FastAPI repository `order-service` in the current empty directory. Here are the confirmed answers from our interview:\n- Single-context repo.\n- Domain terms: Order (a customer request to purchase line items; Avoid: basket, cart, purchase) and LineItem (a product SKU and quantity within an Order; Avoid: entry, row).\n- Stack: Python 3.12, pytest, SQLite in-memory (`:memory:`) with FastAPI TestClient/ASGITransport and an in-memory FakePaymentGateway.\n- Quality gates: Dryer duplication < 0.8% and Crapper CRAP < 10 on `make test`, Mutator mutation testing >= 80% on `make test-all`.\n- Enforce `@SPEC-NNN` traceability across both `tests/system/` and `docs/`.\n\nThe blueprint is approved. Please scaffold the repository now and verify `make test` passes.",
+      "prompt": "We are setting up a new Python FastAPI repository `order-service` in the current empty directory. Here are the confirmed answers from our interview:\n- Target agent harness: Claude Code only.\n- Single-context repo.\n- Domain terms: Order (a customer request to purchase line items; Avoid: basket, cart, purchase) and LineItem (a product SKU and quantity within an Order; Avoid: entry, row).\n- Stack: Python 3.12, pytest, SQLite in-memory (`:memory:`) with FastAPI TestClient/ASGITransport and an in-memory FakePaymentGateway.\n- Quality gates: Dryer duplication < 0.8% and Crapper CRAP < 10 on `make test`, Mutator mutation testing >= 80% on `make test-all`.\n- Enforce `@SPEC-NNN` traceability across both `tests/system/` and `docs/`.\n\nThe blueprint is approved. Please scaffold the repository now and verify `make test` passes.",
       "expected_output": "Initializes Git and scaffolds CLAUDE.md (with First Make It Work, Then Make It Right, and Practice principles), GLOSSARY.md (with Order, LineItem, and Avoid lists), parameterized Makefile, features/ with @SPEC-001, docs/README.md, docs/adr/0001-agent-first-architecture.md, path-scoped .claude/rules/*.md with YAML paths: frontmatter, .claude/skills/ (system-testing, domain-modeling, feature-development), executable scripts/ (check-features, check-traceability, check-quality), and a passing @SPEC-001 system test verified by running make test.",
       "assertions": [
         "Creates CLAUDE.md, GLOSSARY.md (with _Avoid_ synonyms), docs/README.md, and docs/adr/0001-agent-first-architecture.md",
         "Every file in .claude/rules/*.md starts with YAML frontmatter containing a paths: list for on-demand loading",
         "Creates .claude/skills/system-testing/SKILL.md tailored to FastAPI, in-memory SQLite, FakePaymentGateway, Dryer, Crapper, and Mutator",
-        "Creates executable scripts in scripts/ (check-features, check-traceability, check-quality) and a parameterized Makefile where `make test` exits 0"
+        "Creates executable scripts in scripts/ (check-features, check-traceability, check-quality) and a parameterized Makefile where `make test` exits 0",
+        "Does not create files for harnesses that the user did not select (no AGENTS.md, .agents/, .cursor/, .gemini/, or .github/instructions/)"
       ]
     },
     {
       "id": 3,
       "name": "scaffolds-monorepo-with-per-module-features-and-glossary-map",
-      "prompt": "Scaffold an agent-first monorepo in the current directory with two modules: `ordering` and `inventory` (TypeScript / Vitest). Blueprint is confirmed: root `GLOSSARY-MAP.md` plus per-module `GLOSSARY.md` and `features/` in each module, parameterized `Makefile` supporting `MODULE=`, path-scoped `.claude/rules/`, `.claude/skills/`, and deterministic guardrail scripts.",
+      "prompt": "Scaffold an agent-first monorepo in the current directory with two modules: `ordering` and `inventory` (TypeScript / Vitest). The target agent harness is Claude Code only. Blueprint is confirmed: root `GLOSSARY-MAP.md` plus per-module `GLOSSARY.md` and `features/` in each module, parameterized `Makefile` supporting `MODULE=`, path-scoped `.claude/rules/`, `.claude/skills/`, and deterministic guardrail scripts.",
       "expected_output": "Scaffolds a monorepo with root GLOSSARY-MAP.md, modules/ordering/{GLOSSARY.md,features/}, modules/inventory/{GLOSSARY.md,features/}, root CLAUDE.md, parameterized Makefile with MODULE= support, path-scoped .claude/rules/, .claude/skills/, and scripts/check-features + scripts/check-traceability validating all modules.",
       "assertions": [
         "Creates root GLOSSARY-MAP.md and per-module GLOSSARY.md files under modules/ordering and modules/inventory",
         "Creates a features/ directory with valid Gherkin and unique @SPEC tags in both modules/ordering and modules/inventory",
         "Makefile supports the MODULE= parameter and runs deterministic checks across modules",
         "All .claude/rules/*.md files use YAML paths: frontmatter"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "adapts-agent-context-to-claude-code-codex-and-cursor",
+      "prompt": "We are setting up a new repository `invoice-service` in the current empty directory. Here are the confirmed answers from our interview:\n- Target agent harnesses: Claude Code, Codex, and Cursor. The team does not use GitHub Copilot or Gemini CLI.\n- Single-context repo.\n- Domain terms: Invoice (a request to a customer to pay for delivered items; Avoid: bill, statement) and Payment (money that a customer transfers to settle an Invoice; Avoid: transaction, charge).\n- Stack: Node.js JavaScript (ES modules), the built-in `node:test` runner, an in-memory InvoiceRepository, and an in-memory FakePaymentProvider.\n- Quality gates: Dryer duplication < 0.8% and Crapper CRAP < 10 on `make test`, Mutator mutation testing >= 80% on `make test-all`.\n- Enforce `@SPEC-NNN` traceability in `tests/system/` only.\n\nHarness research findings that we verified in the vendor documentation and confirmed in the blueprint:\n- Claude Code loads `CLAUDE.md` at session start and does not read `AGENTS.md`. `CLAUDE.md` can import another file with an `@path` line. Glob-scoped rules go in `.claude/rules/*.md` with `paths:` frontmatter. Claude Code reads project skills only from `.claude/skills/`.\n- Codex loads `AGENTS.md` files from the repository root to the current directory. A nested `AGENTS.md` applies to its directory tree, and the deeper file wins on conflict. Codex has no glob-scoped instruction rules. Codex reads project skills from `.agents/skills/`.\n- Cursor reads `AGENTS.md` and nested `AGENTS.md` files. It also supports glob-scoped rules in `.cursor/rules/*.mdc` with `globs:` and `alwaysApply: false`. Cursor reads project skills from `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`.\n\nThe blueprint is approved. Please scaffold the repository now and verify `make check` passes.",
+      "expected_output": "Uses the given harness research findings: writes AGENTS.md as the canonical instruction file with the three pillars, a thin CLAUDE.md that imports it with @AGENTS.md, path-scoped .claude/rules/*.md for Claude Code, nested directory AGENTS.md files (for example features/AGENTS.md) for Codex and Cursor, skills once in .agents/skills/ with .claude/skills mirroring them, and scripts/check-agent-context wired into make check. Does not create .cursor/rules/ duplicates or files for Copilot or Gemini CLI. Verifies that make check exits 0.",
+      "assertions": [
+        "AGENTS.md is the canonical instruction file and contains the First Make It Work, Then Make It Right, and Practice principles",
+        "CLAUDE.md imports AGENTS.md with an @AGENTS.md line and does not copy its body",
+        ".claude/rules/features.md has paths: frontmatter, and features/AGENTS.md holds the same rule for Codex and Cursor",
+        "Skills exist once in .agents/skills/ and .claude/skills/ mirrors them (symlink or verified copy)",
+        "Does not create .cursor/rules/ duplicates or files for GitHub Copilot or Gemini CLI",
+        "scripts/check-agent-context exists and make check runs it and exits 0"
       ]
     }
   ]
