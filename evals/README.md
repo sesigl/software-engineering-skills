@@ -26,6 +26,21 @@ claude plugin eval . --scaffold --allow-tools "Bash(git:*)" --runs 3 -j 4 --no-p
 - Raw results go to `evals/results/<timestamp>/`. This directory is git-ignored. Record a summary in `RESULTS.md` instead.
 - Each case is one turn. To test a later step of a multi-step skill, write the earlier steps into the prompt as context.
 
+### agent-first-repo-setup
+
+The scaffold cases write files and run `make test`, so they need broader tool grants:
+
+```bash
+claude plugin eval . --tag agent-first-repo-setup --scaffold --allow-tools Bash Write Edit --judge-model sonnet --runs 3 -j 4 --no-publish --threshold 0 --max-cost-usd 60
+```
+
+The eval sandbox has these limits. The case prompts tell the agent about them in a "sandbox notes" block. `skills/agent-first-repo-setup/evals/evals.json` does not include this block, because it is harness-specific.
+
+- Writes to `.claude/` are blocked for every tool grant. The agent writes the Claude Code context to `claude-context/` instead, and the graders check that directory.
+- There is no network access. The single-context `scaffold.sh` prepares `.venv/` with a Homebrew Python 3.13, because the sandbox blocks interpreters under the user's home (for example pyenv). Set `EVAL_PYTHON` to use a different interpreter.
+- `/usr/bin/make` and `/usr/bin/git` are Xcode shims that fail in the sandbox. The agent uses `/Library/Developer/CommandLineTools/usr/bin/make` and `.../git`.
+- The run remaps `$HOME`, also for `scaffold.sh`.
+
 ## Write Graders
 
 - A grader of `type: llm` sees only the last message by default. Write criteria that the last message can prove.

@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: scaffolds-monorepo-with-per-module-features-and-glossary-map
+tags: [agent-first-repo-setup]
+execution:
+  runs: 3
+  max_turns: 90
+  timeout_seconds: 1800
+  allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
+  prompt: |
+    Scaffold an agent-first monorepo in the current directory with two modules: `ordering` and `inventory` (TypeScript / Vitest). Blueprint is confirmed: root `GLOSSARY-MAP.md` plus per-module `GLOSSARY.md` and `features/` in each module, parameterized `Makefile` supporting `MODULE=`, path-scoped `.claude/rules/`, `.claude/skills/`, and deterministic guardrail scripts.
+
+    Eval sandbox notes (they apply only to this environment):
+    - There is no network access and no npm registry. Write the guardrail scripts with Node.js built-ins only (`node` is on PATH).
+    - `/usr/bin/make` and `/usr/bin/git` do not work here. Use `/Library/Developer/CommandLineTools/usr/bin/make` and `/Library/Developer/CommandLineTools/usr/bin/git`.
+    - Writes to `.claude/` are blocked. Write every file that belongs in `.claude/` to `claude-context/` with the same layout (for example `.claude/rules/x.md` goes to `claude-context/rules/x.md`).
+context:
+  scaffold_script: scaffold.sh
