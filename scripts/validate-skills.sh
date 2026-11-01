@@ -21,6 +21,62 @@ err()  { printf "  ${RED}x${NC} %s\n" "$1"; FAIL=$((FAIL + 1)); }
 warn() { printf "  ${YELLOW}!${NC} %s\n" "$1"; WARN=$((WARN + 1)); }
 ok()   { printf "  ${GREEN}v${NC} %s\n" "$1"; PASS=$((PASS + 1)); }
 
+# Required README.md structure for every skill: an H1 equal to the skill name,
+# then these H2 sections in this order. Other sections can appear between them.
+README_SECTIONS=("Why" "How It Works" "Example Prompts" "Evals")
+
+validate_skill_readme() {
+  local skill_dir="$1" skill_name="$2"
+  local readme="${skill_dir}README.md"
+
+  if [[ ! -f "$readme" ]]; then
+    err "README.md missing (required sections: ${README_SECTIONS[*]})"
+    return
+  fi
+
+  local first_heading
+  first_heading="$(grep -m1 -E '^# ' "$readme" || true)"
+  if [[ "$first_heading" != "# ${skill_name}" ]]; then
+    err "README.md must start with the heading '# ${skill_name}' (found '${first_heading}')"
+  else
+    ok "README.md heading matches skill name"
+  fi
+
+  # Ignore headings inside fenced code blocks.
+  local headings
+  headings="$(awk '/^```/{fence=!fence; next} !fence && /^## /{sub(/^## /, ""); sub(/[ \t]+$/, ""); print}' "$readme")"
+  local previous=0 section line missing=0
+  for section in "${README_SECTIONS[@]}"; do
+    line="$(printf "%s\n" "$headings" | grep -n -x -F "$section" | head -n1 | cut -d: -f1)"
+    if [[ -z "$line" ]]; then
+      err "README.md is missing the section '## ${section}'"
+      missing=1
+    elif [[ "$line" -lt "$previous" ]]; then
+      err "README.md section '## ${section}' is out of order (expected: ${README_SECTIONS[*]})"
+      missing=1
+    else
+      previous="$line"
+    fi
+  done
+  [[ $missing -eq 0 ]] && ok "README.md has the required sections in order"
+
+  local evals_section case_dir case_name unlisted=0
+  evals_section="$(awk '/^```/{fence=!fence} !fence && /^## /{in_evals=($0 ~ /^## Evals[ \t]*$/)} in_evals' "$readme")"
+  for case_dir in "${ROOT_DIR}/evals/${skill_name}"/*/; do
+    [[ -f "${case_dir}case.yaml" ]] || continue
+    case_name="$(basename "$case_dir")"
+    if [[ "$evals_section" != *"$case_name"* ]]; then
+      err "README.md '## Evals' does not name the eval case '${case_name}'"
+      unlisted=1
+    fi
+  done
+  if [[ "$evals_section" != *"RESULTS.md"* ]]; then
+    err "README.md '## Evals' must link to evals/RESULTS.md"
+    unlisted=1
+  fi
+  [[ $unlisted -eq 0 ]] && ok "README.md '## Evals' names every eval case and links to RESULTS.md"
+}
+
 printf "${CYAN}Validating marketplace manifests${NC}\n"
 
 for manifest in ".claude-plugin/marketplace.json" ".claude-plugin/plugin.json" ".cursor-plugin/plugin.json"; do
@@ -127,6 +183,8 @@ for skill_dir in "$SKILLS_DIR"/*/; do
   else
     warn "evals/evals.json not found"
   fi
+
+  validate_skill_readme "$skill_dir" "$skill_name"
 
   printf "\n"
 done

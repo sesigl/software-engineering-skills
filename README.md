@@ -9,9 +9,11 @@ Curated, high-signal skills for AI coding agents. Compatible out of the box with
 <!-- SKILLS:START -->
 | Skill | Description | Invocation |
 | :--- | :--- | :--- |
-| [`agent-first-repo-setup`](skills/agent-first-repo-setup/) | Interviews you and scaffolds a Git repository for agent-first development with a lean `CLAUDE.md`, path-scoped `.claude/rules`, on-demand `.claude/skills`, a domain `GLOSSARY.md`, Gherkin feature specs, ADRs, a parameterized `Makefile`, fast system tests, and deterministic quality guardrails (Dryer, Crapper, Mutator). | Model & User (`/agent-first-repo-setup`) |
+| [`agent-first-repo-setup`](skills/agent-first-repo-setup/) | Interviews you and scaffolds a Git repository for agent-first development with a lean `CLAUDE.md`, path-scoped `.claude/rules`, on-demand `.claude/skills`, a domain `GLOSSARY.md`, Gherkin feature specs, ADRs, a parameterized `Makefile`, fast system tests, and deterministic quality guardrails (Dryer, Crapper, Mutator). Targets Claude Code by default and adapts to other harnesses after it researches their conventions. | Model & User (`/agent-first-repo-setup`) |
 | [`assisted-pr-review`](skills/assisted-pr-review/) | Guides you through a pull request as an interactive, step-by-step tour in the terminal, moving from system intent and architecture down to individual lines one stop at a time. | Model & User (`/assisted-pr-review`) |
 <!-- SKILLS:END -->
+
+Each skill folder has a `README.md` with a deep dive (why, how it works, example prompts) and a summary of its evals.
 
 ---
 
@@ -71,54 +73,6 @@ cp -r software-engineering-skills/skills/* ~/.claude/skills/
 
 ---
 
-## Skill Deep Dive: `assisted-pr-review`
-
-One-shot AI code reviews dump a wall of findings at once. The human reviewer loses the thread of the change and ends up rubber-stamping or ignoring the output.
-
-`assisted-pr-review` flips the interaction: **you are the reviewer, and the agent is your tour guide**. Instead of grading the PR alone, the agent prepares a logical route through the diff and walks you through it in the terminal one concern at a time.
-
-### How It Works
-
-```text
-Step 1: Send a scout        Background subagent compares PR intent & ticket against the full diff
-        │                   to find high-confidence behavioral defects while you read the overview.
-        ▼
-Step 2: Show the map        Presents Why (1–2 sentences), What (2–3 sentences), and a numbered
-        │                   Route of stops ordered from foundations (schemas, types, contracts)
-        │                   to dependents. Risky stops are marked with [!]. Waits for your OK.
-        ▼
-Step 3: Walk the stops      One stop per turn:
-        │                   1. Context — what this part does and how it connects to the last stop
-        │                   2. Code — focused file:line snippets
-        │                   3. Verification — what the tests prove (or what coverage is missing)
-        │                   4. Assessment — behavioral mismatches, edge cases, or a 1-line "clean" verdict
-        │                   5. Pause — waits for your questions or review notes before moving on
-        ▼
-Step 4: Close the tour      Summarizes your captured review notes and any remaining scout findings.
-                            Optionally posts your approved notes to GitHub as a PENDING review.
-```
-
-### Example Prompts
-
-```text
-/assisted-pr-review 142
-```
-
-```text
-Walk me through PR #142 with assisted-pr-review.
-```
-
-```text
-Pair review https://github.com/org/repo/pull/142 with me one stop at a time.
-```
-
-### Prerequisites for GitHub Integration
-
-- [GitHub CLI (`gh`)](https://cli.github.com/) authenticated (`gh auth status`), or a configured GitHub MCP server, when reviewing remote GitHub pull requests or posting pending review drafts.
-- Works with plain `git diff` on local branches when offline.
-
----
-
 ## Repository Structure
 
 ```text
@@ -132,18 +86,18 @@ software-engineering-skills/
 │   └── workflows/
 │       └── validate.yml                  # CI validation for skills and manifests
 ├── scripts/
-│   └── validate-skills.sh                # Local & CI validator against Agent Skills spec
+│   └── validate-skills.sh                # Local & CI validator: Agent Skills spec, manifests, skill READMEs
 ├── skills/
-│   └── assisted-pr-review/
+│   └── <skill-name>/                     # agent-first-repo-setup, assisted-pr-review
 │       ├── SKILL.md                      # Primary skill steps and completion criteria
-│       ├── references/
-│       │   └── pending-review.md         # Disclosed reference for pending GitHub reviews
+│       ├── README.md                     # Deep dive and eval summary for humans
+│       ├── references/                   # Disclosed references, loaded on demand
 │       └── evals/
 │           └── evals.json                # Portable eval scenarios (skill-creator format)
 ├── evals/
 │   ├── README.md                         # How to run and write plugin evals
 │   ├── RESULTS.md                        # Latest recorded eval scores
-│   └── assisted-pr-review/<case>/        # case.yaml, scaffold.sh, graders/ for `claude plugin eval`
+│   └── <skill-name>/<case>/              # case.yaml, scaffold.sh, graders/ for `claude plugin eval`
 ├── CLAUDE.md                             # Concise repository instructions for agents
 ├── CONTRIBUTING.md                       # Skill authoring and review guidelines
 ├── LICENSE                               # MIT License

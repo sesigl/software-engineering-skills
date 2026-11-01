@@ -28,11 +28,23 @@ Skills in this repository follow Generation 5 agentic skill design and Claude Op
    ---
    ```
 3. Add at least three evaluation cases in `skills/<skill-name>/evals/evals.json`. Add the same cases as `claude plugin eval` cases in `evals/<skill-name>/<case-name>/`, run them, and record the scores in `evals/RESULTS.md`. See `evals/README.md`.
-4. Register `./skills/<skill-name>` in:
+4. Add `skills/<skill-name>/README.md` with this structure (`./scripts/validate-skills.sh` checks it):
+   ```markdown
+   # <skill-name>
+
+   <One paragraph: what the skill does.>
+
+   ## Why
+   ## How It Works
+   ## Example Prompts
+   ## Evals
+   ```
+   You can add more sections, for example `## Prerequisites`. The `## Evals` section names every case in `evals/<skill-name>/` and links to `evals/RESULTS.md`.
+5. Register `./skills/<skill-name>` in:
    - `.claude-plugin/plugin.json`
    - `README.md` (in the Available Skills table)
-5. Bump the `version` field in `.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`, and `.cursor-plugin/plugin.json`.
-6. Run the validator:
+6. Bump the `version` field in `.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`, and `.cursor-plugin/plugin.json`.
+7. Run the validator:
    ```bash
    ./scripts/validate-skills.sh
    ```
@@ -44,4 +56,5 @@ Skills in this repository follow Generation 5 agentic skill design and Claude Op
 - [ ] `name` and `description` obey platform constraints (`name` <= 64 chars, `description` <= 1024 chars, third-person, no XML tags).
 - [ ] `SKILL.md` is under 500 lines and references are at most one level deep.
 - [ ] `evals/evals.json` contains at least three evaluation scenarios.
+- [ ] `README.md` has the required sections, and `## Evals` names every eval case.
 - [ ] `./scripts/validate-skills.sh` passes with zero failures.
