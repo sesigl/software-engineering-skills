@@ -43,7 +43,7 @@ The eval sandbox has these limits. The case prompts tell the agent about them in
 
 ### teach-me
 
-The cases need no fixture repository. The research case grants `WebFetch`, so the agent can read official sources when the sandbox has network:
+The cases need no fixture repository. The research case allows `WebSearch` and `WebFetch`. `--allow-tools WebFetch` grants the gated one, so the agent can read official sources when the sandbox has network:
 
 ```bash
 claude plugin eval . --tag teach-me --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0

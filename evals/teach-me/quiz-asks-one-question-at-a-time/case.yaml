@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: quiz-asks-one-question-at-a-time
 tags: [teach-me]
-# What this case checks: Runs the quiz well. It asks one question per message, uses a new situation instead of the lesson example, and asks for understanding, not just memory.
+description: "Runs the quiz well. It asks one question per message, uses a new situation instead of the lesson example, and asks for understanding, not just memory."
 execution:
   runs: 3
   max_turns: 15

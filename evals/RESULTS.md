@@ -135,3 +135,4 @@ The eval sandbox blocks writes to `.claude/`, has no network, and cannot run the
 Not run yet. The suite has five cases: `warm-start-asks-before-teaching`, `zooms-in-from-the-problem-with-a-work-example`, `teach-back-finds-and-fixes-a-gap`, `quiz-asks-one-question-at-a-time`, and `checks-current-sources-for-a-recent-topic`.
 
 - Command: `claude plugin eval . --tag teach-me --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0`
+- Expected: some graders will likely pass without the skill too, because the prompt already gives the answer or the check is common behavior. These are `uses-the-learners-example`, `invites-to-continue`, and `marks-feature-status`. For these graders, expect a small delta.
