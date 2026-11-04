@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: zooms-in-from-the-problem-with-a-work-example
-tags: [zoom-teach]
+tags: [teach-me]
 # What this case checks: Uses what the learner already said and skips needless questions. Starts the lesson with the problem, not the solution, uses an example from the learner's own work, explains hard words, and teaches one level per message.
 execution:
   runs: 3

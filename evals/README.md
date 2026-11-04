@@ -41,12 +41,12 @@ The eval sandbox has these limits. The case prompts tell the agent about them in
 - `/usr/bin/make` and `/usr/bin/git` are Xcode shims that fail in the sandbox. The agent uses `/Library/Developer/CommandLineTools/usr/bin/make` and `.../git`.
 - The run remaps `$HOME`, also for `scaffold.sh`.
 
-### zoom-teach
+### teach-me
 
 The cases need no fixture repository. The research case grants `WebFetch`, so the agent can read official sources when the sandbox has network:
 
 ```bash
-claude plugin eval . --tag zoom-teach --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0
+claude plugin eval . --tag teach-me --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0
 ```
 
 Without network, the research grader also passes when the agent says that its knowledge may be out of date and points to the official source.

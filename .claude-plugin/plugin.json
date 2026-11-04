@@ -21,6 +21,6 @@
   "skills": [
     "./skills/agent-first-repo-setup",
     "./skills/assisted-pr-review",
-    "./skills/zoom-teach"
+    "./skills/teach-me"
   ]
 }

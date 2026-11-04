@@ -1,4 +1,4 @@
-# zoom-teach
+# teach-me
 
 Teaches a topic that the learner does not know yet, like a warm and patient teacher. The agent starts with the problem that the topic solves. Then it zooms in one level at a time, in plain English, with one running example. It checks understanding with a teach-back and offers a quiz at the end.
 
@@ -28,7 +28,7 @@ Step 4: Quiz offer          A short quiz, one question per message, with new sce
 ## Example Prompts
 
 ```text
-/zoom-teach BM25
+/teach-me BM25
 ```
 
 ```text
@@ -41,7 +41,7 @@ I want to understand what is new in Java 26. I know Java 21 well.
 
 ## Evals
 
-Each case runs with and without the plugin. Each case is one turn of the lesson: later steps put the earlier lesson into the prompt. The cases are in [`evals/zoom-teach/`](../../evals/zoom-teach/), and the portable copy is in [`evals/evals.json`](evals/evals.json).
+Each case runs with and without the plugin. Each case is one turn of the lesson: later steps put the earlier lesson into the prompt. The cases are in [`evals/teach-me/`](../../evals/teach-me/), and the portable copy is in [`evals/evals.json`](evals/evals.json).
 
 | Case | What it checks | Delta |
 | :--- | :--- | ---: |
@@ -51,4 +51,4 @@ Each case runs with and without the plugin. Each case is one turn of the lesson:
 | `quiz-asks-one-question-at-a-time` | Loads the quiz guide and asks only one question, in a new scenario, that needs understanding and not only memory. | pending |
 | `checks-current-sources-for-a-recent-topic` | For a recent topic (Java 26), loads the research guide and checks current official sources, or says clearly that its knowledge may be out of date, and marks feature status. | pending |
 
-The per-assertion pass rates and the findings are in [`evals/RESULTS.md`](../../evals/RESULTS.md#zoom-teach).
+The per-assertion pass rates and the findings are in [`evals/RESULTS.md`](../../evals/RESULTS.md#teach-me).

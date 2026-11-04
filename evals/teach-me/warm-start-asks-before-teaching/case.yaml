@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: warm-start-asks-before-teaching
-tags: [zoom-teach]
+tags: [teach-me]
 # What this case checks: Starts with a short, friendly warm-up: says the plan, asks how familiar the learner is and what they want, invites a guess, and waits. It does not dump a full lecture.
 execution:
   runs: 3
