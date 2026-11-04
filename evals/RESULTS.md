@@ -129,3 +129,9 @@ The eval sandbox blocks writes to `.claude/`, has no network, and cannot run the
 - Smoke run: every write to `.claude/` was denied, and `make test` could not run in either arm. Fix: the agent writes to `claude-context/`, `scaffold.sh` prepares `.venv/`, and the prompt names the CommandLineTools `make` and `git`.
 - Smoke run: two interview graders were too strict. Fix: the quality-threshold grader accepts a preview of the next round, and "defaults and waits" became two graders.
 - During this run, the `SKILL.md` intro changed: it no longer says that `make test` passes out of the box. Some runs used the old intro. Step 5 did not change.
+
+## zoom-teach
+
+Not run yet. The suite has five cases: `warm-start-asks-before-teaching`, `zooms-in-from-the-problem-with-a-work-example`, `teach-back-finds-and-fixes-a-gap`, `quiz-asks-one-question-at-a-time`, and `checks-current-sources-for-a-recent-topic`.
+
+- Command: `claude plugin eval . --tag zoom-teach --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0`

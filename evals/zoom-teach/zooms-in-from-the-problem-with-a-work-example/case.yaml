@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: zooms-in-from-the-problem-with-a-work-example
+tags: [zoom-teach]
+# What this case checks: Uses what the learner already said and skips needless questions. Starts the lesson with the problem, not the solution, uses an example from the learner's own work, explains hard words, and teaches one level per message.
+execution:
+  runs: 3
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    Teach me BM25. I'm building the search ranking for our online shoe shop and someone told me to use it. I have no idea what it is, I just need to be able to use it in my work.
