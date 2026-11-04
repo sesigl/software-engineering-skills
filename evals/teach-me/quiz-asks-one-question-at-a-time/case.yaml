@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: quiz-asks-one-question-at-a-time
+tags: [teach-me]
+description: "Runs the quiz well. It asks one question per message, uses a new situation instead of the lesson example, and asks for understanding, not just memory."
+execution:
+  runs: 3
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    Use the teach-me skill to continue my lesson about BM25. You used my online shoe shop as the running example and taught the problem, the big idea, and the parts: term frequency with saturation, inverse document frequency, and length normalization. My teach-back was correct. You offered a quiz.
+
+    Yes, quiz me! 5 questions is good.

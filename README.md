@@ -11,6 +11,7 @@ Curated, high-signal skills for AI coding agents. Compatible out of the box with
 | :--- | :--- | :--- |
 | [`agent-first-repo-setup`](skills/agent-first-repo-setup/) | Interviews you and scaffolds a Git repository for agent-first development with a lean `CLAUDE.md`, path-scoped `.claude/rules`, on-demand `.claude/skills`, a domain `GLOSSARY.md`, Gherkin feature specs, ADRs, a parameterized `Makefile`, fast system tests, and deterministic quality guardrails (Dryer, Crapper, Mutator). Targets Claude Code by default and adapts to other harnesses after it researches their conventions. | Model & User (`/agent-first-repo-setup`) |
 | [`assisted-pr-review`](skills/assisted-pr-review/) | Guides you through a pull request as an interactive, step-by-step tour in the terminal, moving from system intent and architecture down to individual lines one stop at a time. | Model & User (`/assisted-pr-review`) |
+| [`teach-me`](skills/teach-me/) | Teaches a topic you do not know yet, step by step: starts with the problem it solves, zooms in one level at a time in plain English, checks your understanding with a teach-back, and offers a quiz. Researches current sources for recent topics. | Model & User (`/teach-me`) |
 <!-- SKILLS:END -->
 
 Each skill folder has a `README.md` with a deep dive (why, how it works, example prompts) and a summary of its evals.
@@ -88,7 +89,7 @@ software-engineering-skills/
 ├── scripts/
 │   └── validate-skills.sh                # Local & CI validator: Agent Skills spec, manifests, skill READMEs
 ├── skills/
-│   └── <skill-name>/                     # agent-first-repo-setup, assisted-pr-review
+│   └── <skill-name>/                     # agent-first-repo-setup, assisted-pr-review, teach-me
 │       ├── SKILL.md                      # Primary skill steps and completion criteria
 │       ├── README.md                     # Deep dive and eval summary for humans
 │       ├── references/                   # Disclosed references, loaded on demand

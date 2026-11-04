@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: teach-back-finds-and-fixes-a-gap
+tags: [teach-me]
+description: "Checks real understanding. When the learner's own explanation has a mistake, it praises what is right, fixes only the main mistake in a new way, and asks a smaller follow-up question instead of moving on."
+execution:
+  runs: 3
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    Use the teach-me skill to continue my lesson about BM25. You used my online shoe shop as the running example. You explained the problem (which matching products to show first), the big idea (score each product for the search words), and the parts: term frequency (more mentions help, but each extra mention adds less: saturation), inverse document frequency (rare words count more), and length normalization. Then you asked me to explain it back in my own words with my own example.
+
+    My explanation: "BM25 solves the problem of ranking search results. For example, if someone searches for 'waterproof hiking boots', a product that says 'waterproof' 20 times will score about twice as high as a product that says it 10 times, because BM25 just counts the words. Rare words like 'waterproof' also count more than common words like 'boots'."
