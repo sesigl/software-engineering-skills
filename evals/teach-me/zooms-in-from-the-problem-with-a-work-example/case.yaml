@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: zooms-in-from-the-problem-with-a-work-example
 tags: [teach-me]
-description: "Uses what the learner already said and skips needless questions. Starts the lesson with the problem, not the solution, uses an example from the learner's own work, explains hard words, and teaches one level per message."
+description: "Uses what the learner already said and skips needless questions. Starts the lesson with the problem, not the solution, uses an example from the learner's own work, and teaches one level per message."
 execution:
   runs: 3
   max_turns: 15

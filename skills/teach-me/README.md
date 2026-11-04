@@ -46,7 +46,7 @@ Each case runs with and without the plugin. Each case is one turn of the lesson:
 | Case | What it checks | Delta |
 | :--- | :--- | ---: |
 | `warm-start-asks-before-teaching` | For a bare "Teach me Java 25", says the plan, asks about familiarity and goal, invites a guess, and waits instead of writing a lecture. | pending |
-| `zooms-in-from-the-problem-with-a-work-example` | When the learner already gave the context, skips the questions, starts with the problem (not the solution), uses the learner's own shoe-shop example, explains hard words, and teaches one short level. | pending |
+| `zooms-in-from-the-problem-with-a-work-example` | When the learner already gave the context, skips the questions, starts with the problem (not the solution), uses the learner's own shoe-shop example, and teaches one short level. | pending |
 | `teach-back-finds-and-fixes-a-gap` | When the learner's explanation has a mistake, names what is right, corrects the one mistake from a new angle, and asks a smaller follow-up question instead of moving on. | pending |
 | `quiz-asks-one-question-at-a-time` | Loads the quiz guide and asks only one question, in a new scenario, that needs understanding and not only memory. | pending |
 | `checks-current-sources-for-a-recent-topic` | For a recent topic (Java 27), loads the research guide and names an official source for its facts, or says clearly that its knowledge may be out of date, and marks feature status. | pending |
