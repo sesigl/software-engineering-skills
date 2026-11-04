@@ -1,29 +1,31 @@
 # Deterministic Guardrail Scripts and Quality Signals
 
-Disclosed reference for Step 5 of [`agent-first-repo-setup`](../SKILL.md). Use these patterns and scripts to enforce Gherkin validity, spec-to-test/doc traceability, and software quality thresholds deterministically.
+Disclosed reference for Step 5 of [`agent-first-repo-setup`](../SKILL.md). Use these patterns and scripts to enforce architecture contracts, Gherkin validity, spec traceability, and software quality thresholds deterministically.
 
 ## Contents
 
-- Stack matrix for fast system tests and quality signals
+- Stack matrix for architecture contracts, system tests, and quality signals
 - `scripts/check-features` reference script
 - `scripts/check-traceability` reference script
 - `scripts/check-quality` reference script
+- Python reference scripts and configuration (`crap_report.py`, `mutation_score.py`, `tests/conftest.py`, `pyproject.toml`)
+- Stack and CI gotchas
 
-## Stack matrix for fast system tests and quality signals
+## Stack matrix for architecture contracts, system tests, and quality signals
 
-Select the tools that match the project stack confirmed in Step 1:
+Select the tools that match the system shape and project stack confirmed in Step 1:
 
-| Stack | In-Memory / Fast DB for System Tests | Fast Quality Signals (`make test`: Dryer < 0.8%, Crapper < 10) | Mutation Testing (`make test-all`: Mutator >= 80%) |
-| :--- | :--- | :--- | :--- |
-| **TypeScript / JS** | SQLite (`:memory:`), PGlite (in-memory Postgres), in-memory fakes | `npx jscpd` (Dryer `< 0.8%`), ESLint `sonarjs/cognitive-complexity` (`< 15`), CRAP check (`< 10`) via Vitest/c8 coverage | Stryker (`npx stryker run`, `>= 80%`) |
-| **Python** | SQLite (`:memory:`), `fakeredis`, ASGI/WSGI in-process test client (`httpx.ASGITransport`) | `npx jscpd` (`< 0.8%`), `radon cc` + `coverage.py` CRAP check (`CRAP < 10`, complexity `< 15`) | `mutmut` or `cosmic-ray` (`>= 80%`) |
-| **Java / Kotlin** | H2 (Postgres/MySQL compatibility mode) or shared singleton Testcontainer with transaction rollback, WireMock / in-memory fakes | `jscpd` or PMD CPD (`< 0.8%`), PMD `CognitiveComplexity` (`< 15`), JaCoCo + `crap4java` (`CRAP < 10`) | PIT (`pitest-maven` / `gradle-pitest-plugin`, `>= 80%`) |
-| **Go** | SQLite (`:memory:`), `miniredis`, `httptest.NewServer` with in-memory adapters | `jscpd` / `dupl` (`< 0.8%`), `gocognit` (`< 15`), `gocyclo` + `go test -coverprofile` CRAP check (`< 10`) | `gremlins` or `go-mutesting` (`>= 80%`) |
-| **Rust** | SQLite (`:memory:`), in-process `tower::ServiceExt::oneshot`, trait-based in-memory fakes | `jscpd` (`< 0.8%`), `cargo clippy -- -D clippy::cognitive_complexity` | `cargo-mutants` (`>= 80%`) |
+| Stack | Architecture Contracts (`make check`) | Fast System-Test Boundary (`tests/system/`) | Fast Quality Signals (`make test`: Dryer < 0.8%, Crapper < 10) | Mutation Testing (`make test-all`: Mutator >= 80%) |
+| :--- | :--- | :--- | :--- | :--- |
+| **TypeScript / JS** | `dependency-cruiser` (`npx depcruise src`) | Plain input data (pipelines/libs), or SQLite (`:memory:`), PGlite, and local fakes | `npx jscpd` (Dryer `< 0.8%`), ESLint `sonarjs/cognitive-complexity` (`< 15`), CRAP check (`< 10`) via Vitest/c8 coverage | Stryker (`npx stryker run`, `>= 80%`) |
+| **Python** | `import-linter` (`uv run lint-imports`) | Plain input data calling pure transforms, or SQLite (`:memory:`), `fakeredis`, and `httpx.ASGITransport` | `jscpd` (`< 0.8%`), `radon` cyclomatic complexity + `coverage.json` per-function CRAP (`CRAP < 10`, complexity `< 15`) | `mutmut >= 3.2` (`>= 80%` via `mutants/**/*.meta`) |
+| **Java / Kotlin** | `ArchUnit` | Plain input data, or H2 / shared singleton Testcontainer with rollback and WireMock / local fakes | `jscpd` or PMD CPD (`< 0.8%`), PMD `CognitiveComplexity` (`< 15`), JaCoCo + CRAP check (`CRAP < 10`) | PIT (`pitest-maven` / `gradle-pitest-plugin`, `>= 80%`) |
+| **Go** | `depguard` (`golangci-lint`) | Plain input data, or SQLite (`:memory:`), `miniredis`, and `httptest.NewServer` | `jscpd` / `dupl` (`< 0.8%`), `gocognit` (`< 15`), `gocyclo` + `go test -coverprofile` CRAP check (`< 10`) | `gremlins` or `go-mutesting` (`>= 80%`) |
+| **Rust** | Workspace crate boundaries + `cargo-deny` | Plain input data, or SQLite (`:memory:`), `tower::ServiceExt::oneshot`, and trait fakes | `jscpd` (`< 0.8%`), `cargo clippy -- -D clippy::cognitive_complexity` | `cargo-mutants` (`>= 80%`) |
 
 ## `scripts/check-features` reference script
 
-Validates that `features/` (or every module's `features/` directory in a monorepo) contains valid Gherkin `.feature` files and that every `Scenario` or `Scenario Outline` has a unique `@SPEC-...` tag. Uses Python 3 (pre-installed on macOS and Linux CI runners) or the repo's native runtime.
+Validates that `features/` (or every module's `features/` directory in a monorepo) contains valid Gherkin `.feature` files and that every `Scenario` or `Scenario Outline` has a unique `@SPEC-...` tag. When `gherkin-official` is installed, it also runs the official Cucumber parser so invalid Gherkin syntax that passes line regexes fails deterministically.
 
 ```python
 #!/usr/bin/env python3
@@ -57,8 +59,21 @@ def find_feature_dirs(root: pathlib.Path, module: str | None) -> list[pathlib.Pa
     return [root / "features"]
 
 
+def parse_errors(path: pathlib.Path) -> list[str]:
+    """Strict syntax check with the official Cucumber Gherkin parser when installed."""
+    try:
+        from gherkin.parser import Parser  # noqa: PLC0415
+    except ImportError:
+        return []
+    try:
+        Parser().parse(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        return [f"{path}: Gherkin parse error: {exc}"]
+    return []
+
+
 def validate_file(path: pathlib.Path, seen_specs: dict[str, str]) -> list[str]:
-    errors: list[str] = []
+    errors: list[str] = parse_errors(path)
     lines = path.read_text(encoding="utf-8").splitlines()
     has_feature = False
     pending_tags: list[tuple[str, int]] = []
@@ -108,7 +123,6 @@ def validate_file(path: pathlib.Path, seen_specs: dict[str, str]) -> list[str]:
             continue
 
         if not STEP_RE.match(raw) and not STRUCTURAL_RE.match(raw):
-            # Allow freeform feature description lines immediately after Feature: before first Scenario
             if scenario_count > 0:
                 errors.append(
                     f"{path}:{idx}: Unrecognized Gherkin line inside scenario: '{stripped}'. "
@@ -166,13 +180,14 @@ if __name__ == "__main__":
 
 ## `scripts/check-traceability` reference script
 
-Verifies two deterministic invariants:
-1. Every `@SPEC-NNN` tag defined in `features/` is referenced in at least one system test under `tests/system/` (and in `docs/` when `REQUIRE_DOC_TRACEABILITY=1`).
-2. Evergreen files (`features/`, `docs/`, `GLOSSARY*.md`) do not reference transient scratch or plan files (`.scratch/`, `plan.md`, `intent.md`, `tasks.md`).
+Verifies three deterministic invariants:
+1. Every `@SPEC-NNN` tag defined in `features/` is referenced in at least one system test under `tests/system/` (and in `docs/` when `REQUIRE_DOC_TRACEABILITY=1`; set the default from the user's Step 1 answer, `"0"` when doc annotations are optional).
+2. Evergreen files (`features/`, `docs/`, `GLOSSARY*.md`) do not reference transient scratch or plan files (`.scratch/`, `plan.md`, `intent.md`, `scratch.md`, `todo.md`).
+3. Every `.claude/rules/*.md` file starts at line 1 with `---` (catching accidental ```` ```markdown ```` fences that break `paths:` scoping).
 
 ```python
 #!/usr/bin/env python3
-"""Verify @SPEC-NNN traceability across features, system tests, and docs."""
+"""Verify @SPEC-NNN traceability, evergreen hygiene, and rule frontmatter."""
 
 import argparse
 import os
@@ -207,7 +222,8 @@ def main() -> int:
     args = parser.parse_args()
 
     root = pathlib.Path(__file__).resolve().parent.parent
-    require_docs = os.environ.get("REQUIRE_DOC_TRACEABILITY", "1") == "1"
+    # Set default to "1" when the user opted into required doc traceability in Step 1, else "0".
+    require_docs = os.environ.get("REQUIRE_DOC_TRACEABILITY", "0") == "1"
 
     modules_dir = root / "modules"
     if modules_dir.is_dir():
@@ -270,13 +286,23 @@ def main() -> int:
                         "Remove links to temporary plans or scratch files."
                     )
 
+    rules_dir = root / ".claude" / "rules"
+    if rules_dir.is_dir():
+        for rule_file in sorted(rules_dir.rglob("*.md")):
+            lines = rule_file.read_text(encoding="utf-8").splitlines()
+            if not lines or lines[0].strip() != "---":
+                errors.append(
+                    f"{rule_file.relative_to(root)}:1: Rule file must start with '---' YAML frontmatter "
+                    "(remove any leading markdown code fence)."
+                )
+
     if errors:
         print("Traceability check failed:", file=sys.stderr)
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
         return 1
 
-    print(f"traceability ok: {total_specs} @SPEC tag(s) verified in system tests and docs.")
+    print(f"traceability ok: {total_specs} @SPEC tag(s) verified.")
     return 0
 
 
@@ -286,49 +312,261 @@ if __name__ == "__main__":
 
 ## `scripts/check-quality` reference script
 
-Enforces fast software quality signals during `make test` (`--fast`: **Dryer** duplication `< 0.8%` and **Crapper** `CRAP < 10` / complexity `< 15`) and exhaustive signals during `make test-all` (`--all`: **Mutator** mutation testing threshold). Adapt the tool invocations to the stack selected in Step 1.
+Enforces fast software quality signals during `make test` (`--fast`: **Dryer** duplication `< 0.8%` and **Crapper** `CRAP < 10` / complexity `< 15`) and full signals during `make test-all` (`--all`: **Mutator** mutation testing threshold `>= 80%`).
 
 ```bash
 #!/usr/bin/env bash
-# Enforce deterministic software quality gates:
-#   --fast : Dryer (duplication < 0.8%) and Crapper (CRAP < 10, complexity < 15) (runs on make test)
-#   --all  : --fast plus Mutator (mutation score >= 80%, kill survivors or delete dead code) (runs on make test-all)
-
+# Deterministic quality gates:
+#   --fast : Dryer (duplication < 0.8%) and Crapper (CRAP < 10, complexity < 15). Needs coverage.json.
+#   --all  : --fast plus Mutator (mutation score >= 80%).
 set -euo pipefail
+cd "$(dirname "$0")/.."
 
 MODE="--fast"
-MODULE=""
-SCOPE="changed"
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --fast|--all) MODE="$1"; shift ;;
-    --module) MODULE="$2"; shift 2 ;;
-    --scope) SCOPE="$2"; shift 2 ;;
-    *) echo "Unknown option: $1 (valid: --fast, --all, --module <name>, --scope changed|all)" >&2; exit 2 ;;
+    *) echo "Unknown option: $1 (valid: --fast, --all)" >&2; exit 2 ;;
   esac
 done
 
-MAX_DUPLICATION_PCT="${MAX_DUPLICATION_PCT:-0.8}" # Dryer: keep clone density below 0.8%
-MAX_COMPLEXITY="${MAX_COMPLEXITY:-15}"            # Keep cognitive/cyclomatic complexity below 15
-MAX_CRAP="${MAX_CRAP:-10}"                        # Crapper: keep CRAP change-risk score below 10
-MIN_MUTATION_PCT="${MIN_MUTATION_PCT:-80}"        # Mutator: require at least 80% killed mutants
+export MAX_DUPLICATION_PCT="${MAX_DUPLICATION_PCT:-0.8}" # Dryer: clone density below 0.8%
+export MAX_COMPLEXITY="${MAX_COMPLEXITY:-15}"            # Complexity below 15
+export MAX_CRAP="${MAX_CRAP:-10}"                        # Crapper: CRAP score below 10
+export MIN_MUTATION_PCT="${MIN_MUTATION_PCT:-80}"        # Mutator: at least 80% killed mutants
 
-echo "quality: running fast checks (Dryer < ${MAX_DUPLICATION_PCT}%, Crapper CRAP < ${MAX_CRAP}, complexity < ${MAX_COMPLEXITY})..."
+JSCPD="jscpd"
+command -v jscpd >/dev/null 2>&1 || JSCPD="npx --yes jscpd"
+echo "dryer: duplication must be < ${MAX_DUPLICATION_PCT}%"
+$JSCPD src tests --threshold "${MAX_DUPLICATION_PCT}" --reporters console --silent --ignore "**/__pycache__/**"
 
-# 1. Dryer / Duplication check (replace or invoke stack-configured clone detector, e.g. jscpd)
-# npx --yes jscpd src/ --threshold "${MAX_DUPLICATION_PCT}" --silent
-
-# 2. Crapper / Complexity check (invoke stack-configured CRAP and complexity analyzer)
-# <crap-and-complexity-command>
+# Replace with the stack CRAP checker (Python reference: scripts/crap_report.py)
+uv run python scripts/crap_report.py
 
 if [[ "$MODE" == "--all" ]]; then
-  echo "quality: running Mutator checks (threshold >= ${MIN_MUTATION_PCT}%: cover uncovered, kill survivors, or delete dead code)..."
-  # 3. Mutation testing (invoke PIT / Stryker / mutmut / cargo-mutants / gremlins)
-  # <mutation-test-command>
+  # Replace with the stack mutation runner (Python reference: mutmut + scripts/mutation_score.py)
+  rm -rf mutants
+  uv run mutmut run
+  uv run python scripts/mutation_score.py
 fi
-
 echo "quality ok (${MODE})."
 ```
 
-When generating `scripts/check-quality` for a specific repository, wire the real stack check commands (or a lightweight built-in AST/line analyzer when external CLI tools are not yet installed) so that `make test` and `make test-all` execute real assertions immediately.
+## Python reference scripts and configuration
+
+When the repository uses Python (`uv`, `pytest-bdd`, `ruff`, `mypy`, `import-linter`, `radon`, `mutmut`), use these battle-tested implementations instead of inventing custom scripts.
+
+### `scripts/crap_report.py` (Radon cyclomatic complexity + `coverage.json`)
+
+Note: `radon` measures **cyclomatic complexity**, not cognitive complexity. State this clearly in the script docstring and `CLAUDE.md`.
+
+```python
+"""Crapper: fail when a function has CRAP >= MAX_CRAP or cyclomatic complexity >= MAX_COMPLEXITY.
+
+CRAP = complexity^2 * (1 - coverage)^3 + complexity. Complexity is radon cyclomatic
+complexity (not cognitive complexity). Coverage is the line coverage of the function
+body from coverage.json.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+from radon.complexity import cc_visit
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+ROOT = Path(__file__).resolve().parent.parent
+SOURCE_DIR = ROOT / "src"
+COVERAGE_FILE = ROOT / "coverage.json"
+
+
+def _functions(blocks: list[Any]) -> Iterator[Any]:
+    for block in blocks:
+        if hasattr(block, "methods"):
+            yield from block.methods
+        else:
+            yield block
+
+
+def _coverage(file_data: dict[str, Any] | None, start: int, end: int) -> float:
+    if file_data is None:
+        return 0.0
+    executed = {line for line in file_data["executed_lines"] if start <= line <= end}
+    missing = {line for line in file_data["missing_lines"] if start <= line <= end}
+    statements = len(executed) + len(missing)
+    return 1.0 if statements == 0 else len(executed) / statements
+
+
+def main() -> int:
+    max_crap = float(os.environ.get("MAX_CRAP", "10"))
+    max_complexity = int(os.environ.get("MAX_COMPLEXITY", "15"))
+    if not COVERAGE_FILE.is_file():
+        print("crapper: coverage.json is missing. Run tests with coverage first (make test).")
+        return 1
+    files = json.loads(COVERAGE_FILE.read_text(encoding="utf-8"))["files"]
+    violations: list[str] = []
+    checked = 0
+    for path in sorted(SOURCE_DIR.rglob("*.py")):
+        relative = str(path.relative_to(ROOT))
+        for func in _functions(cc_visit(path.read_text(encoding="utf-8"))):
+            checked += 1
+            coverage = _coverage(files.get(relative), func.lineno, func.endline)
+            crap = func.complexity**2 * (1 - coverage) ** 3 + func.complexity
+            if crap >= max_crap or func.complexity >= max_complexity:
+                violations.append(
+                    f"{relative}:{func.lineno} {func.name}: CRAP={crap:.1f} "
+                    f"complexity={func.complexity} coverage={coverage:.0%}. "
+                    "Cover the branches with a system test or flatten the control flow."
+                )
+    if violations:
+        print("crapper failed:", *violations, sep="\n  - ")
+        return 1
+    print(f"crapper ok: {checked} function(s), CRAP < {max_crap:g}, complexity < {max_complexity}.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+### `scripts/mutation_score.py` (`mutmut 3` metadata reader)
+
+`mutmut 3` writes per-file `.meta` JSON files under `mutants/` with `exit_code_by_key` (`0` = survived, `33` = no tests, `34` = skipped; any other integer exit code = killed).
+
+```python
+"""Mutator: fail when the mutmut 3 score is below MIN_MUTATION_PCT."""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+NOT_KILLED = {0, 33, 34, None}
+
+
+def main() -> int:
+    minimum = float(os.environ.get("MIN_MUTATION_PCT", "80"))
+    codes: list[int | None] = []
+    for meta in (ROOT / "mutants").rglob("*.meta"):
+        codes.extend(json.loads(meta.read_text(encoding="utf-8"))["exit_code_by_key"].values())
+    if not codes:
+        print("mutator: no mutants found. Run `uv run mutmut run` first.")
+        return 1
+    killed = sum(code not in NOT_KILLED for code in codes)
+    score = 100 * killed / len(codes)
+    if score < minimum:
+        print(
+            f"mutator failed: {score:.1f}% killed ({killed}/{len(codes)}) < {minimum:g}%. "
+            "Run `uv run mutmut results`, then kill survivors with behavioral assertions "
+            "or delete the dead code."
+        )
+        return 1
+    print(f"mutator ok: {score:.1f}% killed ({killed}/{len(codes)}).")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+### `tests/conftest.py` (Register `@SPEC-NNN` marks for `pytest-bdd`)
+
+`pytest-bdd` converts `@SPEC-NNN` Gherkin tags into pytest marks. When `filterwarnings = ["error"]` is active, unregistered `@SPEC-NNN` marks fail with `PytestUnknownMarkWarning`. Register them dynamically from `features/`:
+
+```python
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pytest
+
+_FEATURES = Path(__file__).resolve().parent.parent / "features"
+_SPEC_TAG = re.compile(r"@([A-Z0-9_-]*SPEC-\d{3,})\b")
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register every @SPEC-NNN tag in features/ as a pytest marker."""
+    for feature in _FEATURES.rglob("*.feature"):
+        for spec in _SPEC_TAG.findall(feature.read_text(encoding="utf-8")):
+            config.addinivalue_line("markers", f"{spec}: Gherkin scenario {spec}")
+```
+
+### Python `pyproject.toml` architecture and tool baseline
+
+```toml
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "CPY001",  # no per-file copyright header
+    "D",       # docstrings: names and types carry meaning; add docstrings where intent is non-obvious
+    "COM812",  # conflicts with ruff formatter
+    "ISC001",  # conflicts with ruff formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "INP001", "ANN201"]
+"scripts/**" = ["INP001", "T201", "S603", "S607"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool", "explicit-override"]
+files = ["src", "tests", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-q", "--import-mode=importlib", "-p", "no:cacheprovider"]
+xfail_strict = true
+filterwarnings = ["error"]
+
+[tool.mutmut]
+source_paths = ["src/<package>/"]
+also_copy = ["features/", "scripts/"]
+
+[tool.importlinter]
+root_package = "<package>"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Core and transforms are pure: no I/O, network, process, clock, or randomness"
+type = "forbidden"
+source_modules = ["<package>.core", "<package>.jobs.*.transform"]
+forbidden_modules = [
+    "<package>.storage",
+    "os", "io", "pathlib", "shutil", "tempfile", "glob", "socket", "ssl", "http", "urllib",
+    "subprocess", "multiprocessing", "threading", "asyncio", "sqlite3", "pickle", "logging",
+    "time", "datetime", "random",
+]
+
+[[tool.importlinter.contracts]]
+name = "Slices/jobs are independent"
+type = "independence"
+modules = ["<package>.jobs.*"]
+
+[[tool.importlinter.contracts]]
+name = "Production code never imports tests"
+type = "forbidden"
+source_modules = ["<package>"]
+forbidden_modules = ["tests"]
+allow_indirect_imports = true
+```
+
+## Stack and CI gotchas
+
+- **`mutmut 3` configuration**: `paths_to_mutate` is deprecated; use `source_paths = ["src/<package>/"]`. Because `mutmut 3` runs tests inside a copied `mutants/` directory, set `also_copy = ["features/", "scripts/"]` whenever tests read `.feature` files or helper scripts.
+- **`pip-audit` on an editable `uv` project**: `pip-audit` fails when it tries to audit the local editable project from PyPI. Audit the locked third-party dependencies instead:
+  `uv export --frozen --no-emit-project --no-hashes --quiet | uv run pip-audit --strict --disable-pip --no-deps --progress-spinner off -r /dev/stdin`
+- **`jscpd 5` flags and version pinning**: `jscpd 5` removed the `--gitignore` flag; pass explicit `--ignore` globs (such as `--ignore "**/__pycache__/**"`). Pin the same `jscpd` version in CI (for example `npm install --global jscpd@5.4.2`) as locally so clone counts do not drift.
+- **CI verification in a clean checkout**: When you generate a CI workflow (`.github/workflows/ci.yml` or `Jenkinsfile`), verify that `make test-all` passes in a fresh `git clone` of the committed state so untracked local files do not hide missing `also_copy` or lockfile entries.
