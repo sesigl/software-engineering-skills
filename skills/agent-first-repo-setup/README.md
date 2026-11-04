@@ -31,7 +31,7 @@ Step 5: Guardrails          scripts/check-features, check-traceability, check-qu
                             contracts and runs make test until it exits 0.
 ```
 
-The generated repository follows three principles: **First Make It Work** (attack the premise, fix root causes, build the lever), **Then Make It Right** (system-test-first against in-memory stores, quality gates), and **Practice** (small context, evergreen ADRs, small ordered commits).
+The generated repository follows three principles: **First Make It Work** (question requirements, fix root causes, automate checks in scripts), **Then Make It Right** (system-test-first against plain data or in-memory stores, quality gates), and **Practice** (small context, evergreen ADRs, small ordered commits).
 
 ## Example Prompts
 

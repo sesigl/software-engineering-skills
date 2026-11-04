@@ -8,7 +8,7 @@ Disclosed reference for Step 5 of [`agent-first-repo-setup`](../SKILL.md). Use t
 - `scripts/check-features` reference script
 - `scripts/check-traceability` reference script
 - `scripts/check-quality` reference script
-- Python reference scripts and configuration (`crap_report.py`, `mutation_score.py`, `tests/conftest.py`, `pyproject.toml`)
+- Python reference scripts and configuration
 - Stack and CI gotchas
 
 ## Stack matrix for architecture contracts, system tests, and quality signals
@@ -251,11 +251,12 @@ def main() -> int:
             content = fpath.read_text(encoding="utf-8")
             for spec_id in SPEC_DEF_RE.findall(content):
                 total_specs += 1
-                if spec_id not in tests_text:
+                snake_id = spec_id.lower().replace("-", "_")
+                if spec_id not in tests_text and snake_id not in tests_text.lower():
                     rel_test = test_search_dir.relative_to(root) if test_search_dir.exists() else "tests/system"
                     errors.append(
                         f"@{spec_id} (in {fpath.relative_to(root)}) has no system test reference in {rel_test}. "
-                        f"Add a system test annotated with '{spec_id}'."
+                        f"Add a system test named 'test_{snake_id}_...' or annotated with '@{spec_id}'."
                     )
                 if require_docs and spec_id not in local_docs_text:
                     errors.append(
@@ -354,7 +355,7 @@ echo "quality ok (${MODE})."
 
 ## Python reference scripts and configuration
 
-When the repository uses Python (`uv`, `pytest-bdd`, `ruff`, `mypy`, `import-linter`, `radon`, `mutmut`), use these battle-tested implementations instead of inventing custom scripts.
+When the repository uses Python (`uv`, `pytest-bdd`, `ruff`, `mypy`, `import-linter`, `radon`, `mutmut`), use these reference implementations:
 
 ### `scripts/crap_report.py` (Radon cyclomatic complexity + `coverage.json`)
 
@@ -382,8 +383,14 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE_DIR = ROOT / "src"
 COVERAGE_FILE = ROOT / "coverage.json"
+
+
+def _source_files() -> list[Path]:
+    modules_dir = ROOT / "modules"
+    if modules_dir.is_dir():
+        return sorted(modules_dir.glob("*/src/**/*.py"))
+    return sorted((ROOT / "src").rglob("*.py"))
 
 
 def _functions(blocks: list[Any]) -> Iterator[Any]:
@@ -412,7 +419,7 @@ def main() -> int:
     files = json.loads(COVERAGE_FILE.read_text(encoding="utf-8"))["files"]
     violations: list[str] = []
     checked = 0
-    for path in sorted(SOURCE_DIR.rglob("*.py")):
+    for path in _source_files():
         relative = str(path.relative_to(ROOT))
         for func in _functions(cc_visit(path.read_text(encoding="utf-8"))):
             checked += 1
@@ -492,20 +499,38 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import pytest
 
-_FEATURES = Path(__file__).resolve().parent.parent / "features"
+_ROOT = Path(__file__).resolve().parent.parent
+_SEARCH_ROOT = _ROOT / "modules" if (_ROOT / "modules").is_dir() else _ROOT / "features"
 _SPEC_TAG = re.compile(r"@([A-Z0-9_-]*SPEC-\d{3,})\b")
 
 
 def pytest_configure(config: pytest.Config) -> None:
     """Register every @SPEC-NNN tag in features/ as a pytest marker."""
-    for feature in _FEATURES.rglob("*.feature"):
+    for feature in _SEARCH_ROOT.rglob("*.feature"):
         for spec in _SPEC_TAG.findall(feature.read_text(encoding="utf-8")):
             config.addinivalue_line("markers", f"{spec}: Gherkin scenario {spec}")
 ```
 
 ### Python `pyproject.toml` architecture and tool baseline
 
+Install the required packages in the `dev` dependency group (`uv sync --locked`) before running the guardrail scripts:
+
 ```toml
+[dependency-groups]
+dev = [
+    "coverage[toml]>=7.6",
+    "gherkin-official>=29.0",
+    "import-linter>=2.1",
+    "mutmut>=3.2",
+    "mypy>=1.13",
+    "pip-audit>=2.7",
+    "pytest>=8.3",
+    "pytest-bdd>=8.0",
+    "pytest-cov>=6.0",
+    "radon>=6.0",
+    "ruff>=0.8",
+]
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [

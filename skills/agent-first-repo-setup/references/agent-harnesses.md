@@ -38,7 +38,7 @@ Apply these rules to the verified findings. Generate files only for the harnesse
 
 1. **Only Claude Code (default)**: Use `CLAUDE.md`, `.claude/rules/`, and `.claude/skills/` as the SKILL.md steps describe. Do not create files for other harnesses.
 2. **One source of truth for instructions**: Write the project instructions (the `CLAUDE.md` template from `repo-templates.md`) to one canonical file. Prefer the file that most selected harnesses read natively (usually `AGENTS.md`). For a harness that does not read it, write the smallest adapter that the documentation allows: an import line (for example `@AGENTS.md` in `CLAUDE.md`) or a setting that adds the canonical file to the context. Copy the body only when no import or setting exists, and let `scripts/check-agent-context` compare the copies.
-3. **One body per rule topic**: Keep one body for each rule topic (`features`, `testing`, `docs-and-adrs`, `scripts-and-build`) and render it in the format of each selected harness:
+3. **One body per rule topic**: Keep one body for each rule topic (`architecture`, `features`, `testing`, `docs-and-adrs`, `scripts-and-build`) and render it in the format of each selected harness:
    - Use glob-scoped rules where the harness supports them, because they load the least context.
    - Use a nested instruction file in the covered directory (for example `features/AGENTS.md`) for a harness that supports only directory scope. If part of the scope is a root file (for example `Makefile`), add one pointer line to the root instruction file.
    - Do not render a rule twice for the same harness. If a harness reads both a nested file and its own glob-scoped rule for the same scope, keep only one of them.
@@ -72,12 +72,12 @@ FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 errors = []
 
 
-def read(relative):
+def read(relative: str) -> str | None:
     path = ROOT / relative
     if not path.is_file():
         errors.append(f"missing {relative}")
         return None
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 for topic, files in RULES.items():
@@ -99,10 +99,13 @@ for relative, needle in ADAPTERS.items():
         errors.append(f"{relative} must contain '{needle}'")
 
 for source, mirrors in SKILL_MIRRORS.items():
-    for skill in sorted((ROOT / source).glob("*/SKILL.md")):
+    skills = sorted((ROOT / source).glob("*/SKILL.md"))
+    if not skills:
+        errors.append(f"{source} contains no */SKILL.md files")
+    for skill in skills:
         for mirror in mirrors:
             copy = ROOT / mirror / skill.relative_to(ROOT / source)
-            if not copy.is_file() or copy.read_text() != skill.read_text():
+            if not copy.is_file() or copy.read_text(encoding="utf-8") != skill.read_text(encoding="utf-8"):
                 errors.append(f"{copy.relative_to(ROOT)} must match "
                               f"{skill.relative_to(ROOT)} (use a symlink)")
 

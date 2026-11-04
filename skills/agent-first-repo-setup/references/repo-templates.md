@@ -149,9 +149,9 @@ If a contract fails, fix the design. Do not weaken the contract without a new AD
 ## Engineering Principles
 
 ### 1. First Make It Work
-- **Attack the premise, subtract before you add.** Delete dead code and unused indirection first.
+- **Question requirements and remove unused code first.** Delete dead code and unused indirection before adding code.
 - **Fix root causes.** Fix the domain model or boundary invariant, not the call sites.
-- **Build the lever.** Put repeated checks into `scripts/` and wire them into `make` rather than prose rules.
+- **Automate checks in scripts.** Put repeated checks into `scripts/` and run them from `make` targets.
 - **Model the domain.** Use exact terms from `GLOSSARY.md`. Parse and validate at the boundary; keep the core pure.
 
 ### 2. Then Make It Right
@@ -160,7 +160,7 @@ If a contract fails, fix the design. Do not weaken the contract without a new AD
 - **Quality gates:** Crapper `CRAP < 10` and complexity `< 15`. Dryer duplication `< 0.8%`. Mutator `>= 80%`: kill survivors with behavioral assertions, or delete the dead code.
 
 ### 3. Practice
-- **Guard the context window.** Rules in `.claude/rules/` load by path. Procedures live in `.claude/skills/`. Delegate broad searches to subagents.
+- **Keep agent context small.** Rules in `.claude/rules/` load by path. Procedures live in `.claude/skills/`. Delegate broad searches to subagents.
 - **Protect evergreen assets.** `features/`, `docs/`, and `GLOSSARY.md` must never link to transient plan or scratch files.
 - **Small ordered commits.** Keep structural commits separate from behavioral commits.
 ```
@@ -266,7 +266,7 @@ Humans and coding agents need fast, deterministic feedback on domain language, a
 
 ## Parameterized `Makefile` template
 
-Keep top-level targets to five commands (`help`, `check`, `test`, `test-all`, `build`) and expose knobs through variables (`MODULE`, `SPEC`, `FILTER`, `SCOPE`).
+Keep top-level targets to five commands (`help`, `check`, `test`, `test-all`, `build`) and pass options through variables (`MODULE`, `SPEC`, `FILTER`, `SCOPE`).
 
 Note two ordering rules:
 1. `check` runs static guardrails (formatter, linter, type checker, import/architecture contracts, CVE audit, Gherkin syntax, and traceability).

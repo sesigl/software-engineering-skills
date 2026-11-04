@@ -14,7 +14,7 @@ Disclosed reference for Step 4 of [`agent-first-repo-setup`](../SKILL.md). Use t
 
 Claude Code loads files in `.claude/rules/*.md` unconditionally unless they declare a YAML frontmatter block with a `paths` field. `paths` is the only frontmatter field Claude Code reads in rule files. When `paths` is present, Claude Code loads the rule strictly on demand when reading, writing, or editing a file that matches one of the globs.
 
-**Gotcha**: Every `.claude/rules/*.md` file must start at line 1 with `---`. When copying from the fenced templates below, never copy the outer ```` ```markdown ```` fence into the file—a leading fence breaks YAML frontmatter parsing and causes the rule to lose its path scope. `scripts/check-traceability` verifies that every rule file starts with `---`.
+**Gotcha**: Every `.claude/rules/*.md` file must start at line 1 with `---`. Copy only the inner YAML frontmatter and rule body from the fenced templates below (leaving out the outer ```` ```markdown ```` fence), because a leading code fence prevents Claude Code from parsing the `paths:` frontmatter. `scripts/check-traceability` verifies that every rule file starts with `---`.
 
 ### `.claude/rules/architecture.md`
 
@@ -107,7 +107,7 @@ paths:
   - "**/scripts/**"
 ---
 
-# Scripts and Makefile Rules (Build the Lever)
+# Scripts and Makefile Rules
 
 - Keep top-level `Makefile` targets limited to `help`, `check`, `test`, `test-all`, and `build`. Expose filtering and scoping via variables (`MODULE=`, `SPEC=`, `FILTER=`, `SCOPE=`).
 - Guardrail scripts in `scripts/` must be deterministic, exit non-zero on violations, and print the exact offending file or `@SPEC-NNN` ID along with the command or edit needed to fix it.
@@ -201,9 +201,9 @@ description: Implements new features or behavior changes spec-first using Gherki
 
 Follow the three-phase loop (**First Make It Work -> Then Make It Right -> Practice**) whenever adding or changing behavior in this repository.
 
-## Step 1: Attack the premise and align domain language
+## Step 1: Check requirements and align domain language
 
-Challenge unnecessary complexity in the request. Read `GLOSSARY.md` and relevant files in `docs/adr/`. Subtract obsolete shims or dead code before adding new code. If the change introduces or renames a domain concept or makes a non-obvious architectural trade-off, update `GLOSSARY.md` or add an ADR in `docs/adr/` using `.claude/skills/domain-modeling/SKILL.md`.
+Challenge unnecessary complexity in the request. Read `GLOSSARY.md` and relevant files in `docs/adr/`. Remove obsolete shims or dead code before adding new code. If the change introduces or renames a domain concept or makes a non-obvious architectural trade-off, update `GLOSSARY.md` or add an ADR in `docs/adr/` using `.claude/skills/domain-modeling/SKILL.md`.
 
 Completion criterion: all domain terms used by the feature exist in `GLOSSARY.md`, obsolete code is identified for removal, and any non-obvious trade-off is recorded in `docs/adr/`.
 
