@@ -9,25 +9,26 @@ An agent works only as well as the repository lets it check its own work. Withou
 ## How It Works
 
 ```text
-Step 1: Interview           Asks 2–4 questions per round, each with a recommended default:
-        │                   target agent harnesses (default: Claude Code), domain terms,
-        │                   topology, stack, fast test harness, quality gates, docs traceability.
-        │                   For harnesses other than Claude Code, researches their current docs.
+Step 1: Interview           Reads existing files and reference docs first, infers defaults,
+        │                   and asks only open questions (2–4 per round): domain + @SPEC-001
+        │                   increment, system shape + architecture contracts, stack + fast
+        │                   test boundary + quality gates, agent harnesses + docs traceability.
         ▼
-Step 2: Blueprint           Shows the directory tree, Makefile targets, guardrail scripts, and
-        │                   agent context (with harness findings and source URLs). Waits for OK.
+Step 2: Blueprint           Shows the directory tree, architecture contracts, Makefile targets,
+        │                   guardrail scripts, and agent context. Waits for approval.
         ▼
 Step 3: Foundations         git init, instruction file (CLAUDE.md, or AGENTS.md plus adapters),
         │                   GLOSSARY.md (or GLOSSARY-MAP.md), features/ with @SPEC-001,
         │                   docs/README.md, docs/adr/0001, parameterized Makefile.
         ▼
 Step 4: Agent context       Path-scoped rules and on-demand skills (system-testing,
-        │                   domain-modeling, feature-development), one body per rule topic,
-        │                   rendered only for the selected harnesses.
+        │                   domain-modeling, feature-development, plus optional read-only
+        │                   system skills), rendered only for the selected harnesses.
         ▼
 Step 5: Guardrails          scripts/check-features, check-traceability, check-quality
                             (Dryer < 0.8%, Crapper CRAP < 10, Mutator >= 80% on make test-all),
-                            check-agent-context for two or more harnesses. Runs make test until it exits 0.
+                            check-agent-context for two or more harnesses. Probes architecture
+                            contracts and runs make test until it exits 0.
 ```
 
 The generated repository follows three principles: **First Make It Work** (attack the premise, fix root causes, build the lever), **Then Make It Right** (system-test-first against in-memory stores, quality gates), and **Practice** (small context, evergreen ADRs, small ordered commits).
