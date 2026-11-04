@@ -46,10 +46,10 @@ The eval sandbox has these limits. The case prompts tell the agent about them in
 The cases need no fixture repository. The research case allows `WebSearch` and `WebFetch`. `--allow-tools WebFetch` grants the gated one, so the agent can read official sources when the sandbox has network:
 
 ```bash
-claude plugin eval . --tag teach-me --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0
+claude plugin eval . --tag teach-me --allow-tools WebFetch --judge-model sonnet --runs 3 -j 4 --no-publish --threshold 0
 ```
 
-Without network, the research grader also passes when the agent says that its knowledge may be out of date and points to the official source.
+Without network, the research grader also passes when the agent says that its knowledge may be out of date and points to the official source. Use the sonnet judge: the default haiku judge gave false failures on the research graders.
 
 ## Write Graders
 

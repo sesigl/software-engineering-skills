@@ -132,7 +132,78 @@ The eval sandbox blocks writes to `.claude/`, has no network, and cannot run the
 
 ## teach-me
 
-Not run yet. The suite has five cases: `warm-start-asks-before-teaching`, `zooms-in-from-the-problem-with-a-work-example`, `teach-back-finds-and-fixes-a-gap`, `quiz-asks-one-question-at-a-time`, and `checks-current-sources-for-a-recent-topic`.
+- Date: 2026-11-04
+- Claude Code: 2.1.318
+- Model: claude-opus-5-5 (agent), sonnet (judge, 3 votes per grader)
+- Runs: 3 per case per arm (with plugin / without plugin)
+- Command: `claude plugin eval . --tag teach-me --allow-tools WebFetch --judge-model sonnet --runs 3 -j 4 --no-publish --threshold 0`
+- Duration and cost: 4 minutes, $2.96
 
-- Command: `claude plugin eval . --tag teach-me --allow-tools WebFetch --runs 3 -j 4 --no-publish --threshold 0`
-- Expected: some graders will likely pass without the skill too, because the prompt already gives the answer or the check is common behavior. These are `uses-the-learners-example`, `invites-to-continue`, and `marks-feature-status`. For these graders, expect a small delta.
+| Case | With | Without | Delta |
+| :--- | ---: | ---: | ---: |
+| warm-start-asks-before-teaching | 1.00 | 0.00 | +1.00 |
+| zooms-in-from-the-problem-with-a-work-example | 1.00 | 0.60 | +0.40 |
+| teach-back-finds-and-fixes-a-gap | 0.92 | 0.50 | +0.42 |
+| quiz-asks-one-question-at-a-time | 1.00 | 0.44 | +0.56 |
+| checks-current-sources-for-a-recent-topic | 1.00 | 1.00 | 0.00 |
+
+### Per-Assertion Pass Rate (with / without)
+
+**warm-start-asks-before-teaching**
+
+| Assertion | With | Without |
+| :--- | ---: | ---: |
+| Says the plan (big picture, then details) | 3/3 | 0/3 |
+| Asks about familiarity and goal | 3/3 | 0/3 |
+| Invites a guess, "no clue" is fine | 3/3 | 0/3 |
+| Waits before it teaches | 3/3 | 0/3 |
+
+**zooms-in-from-the-problem-with-a-work-example**
+
+| Assertion | With | Without |
+| :--- | ---: | ---: |
+| Does not ask again for known context | 3/3 | 3/3 |
+| Starts with the problem | 3/3 | 0/3 |
+| Uses the learner's shoe-shop example | 3/3 | 3/3 |
+| Stays at the problem level, no formula | 3/3 | 0/3 |
+| Invites the learner to continue | 3/3 | 3/3 |
+
+**teach-back-finds-and-fixes-a-gap**
+
+| Assertion | With | Without |
+| :--- | ---: | ---: |
+| Names what is right | 3/3 | 3/3 |
+| Corrects the saturation mistake | 3/3 | 3/3 |
+| Re-explains the gap from a new angle | 3/3 | 0/3 |
+| Asks a narrower follow-up, no quiz | 2/3 | 0/3 |
+
+**quiz-asks-one-question-at-a-time**
+
+| Assertion | With | Without |
+| :--- | ---: | ---: |
+| Asks only one question | 3/3 | 1/3 |
+| Uses a new scenario, not the shoe shop | 3/3 | 0/3 |
+| Needs understanding, not only recall | 3/3 | 3/3 |
+
+**checks-current-sources-for-a-recent-topic**
+
+| Assertion | With | Without |
+| :--- | ---: | ---: |
+| Names an official source or flags old knowledge | 3/3 | 3/3 |
+| Marks feature status (final, preview) | 3/3 | 3/3 |
+
+The with-only indicators passed in every run: the `Skill` tool was used (15/15), and the agent read `references/quiz.md` (3/3) and `references/research.md` (3/3).
+
+### Findings
+
+1. The skill changes how a lesson starts. Without it, the agent answers "Teach me Java 25" with a full lecture (0/3 on every warm-start check). With it, the agent says the plan, asks short questions, and waits (3/3).
+2. With the skill, the agent starts with the problem and stays at that level (3/3). Without it, the agent explains the BM25 formula and its parts at once (0/3).
+3. In the teach-back, both arms find and correct the mistake. Only the skill arm focuses on that one gap from a new angle and asks a narrower check. The baseline also re-teaches the missed length normalization and gives a broad task.
+4. In the quiz, the baseline asks several questions at once or reuses the shoe-shop example. The skill arm asks one question in a new scenario (3/3).
+5. The research case has no delta. With `WebFetch`, the baseline also reads openjdk.org, names JEPs, and labels feature status. The skill still reads `references/research.md` and starts with the problem, but these graders do not measure that.
+6. Graders that pass in both arms (`skips-known-questions`, `uses-the-learners-example`, `invites-to-continue`, `names-what-is-right`, `corrects-the-misconception`, `tests-understanding`) protect against regressions. They do not add to the delta.
+
+### History
+
+- Run 1 (haiku judge): the teach-back and quiz prompts said "We are in a teach-me lesson", and the skill did not load (0/3). Fix: the prompts say "Use the teach-me skill to continue my lesson". A hard-words grader failed plain outputs on one word such as "query", so it was removed. The one-level grader now allows a short list of what a good ranking must do.
+- Runs 2 and 3 (haiku judge): the haiku judge failed outputs that named "the OpenJDK pages" as their source, and outputs that put features under status headings. The same texts passed in other runs. Fix: the status grader says that a group heading counts, and the recorded run uses the sonnet judge.
